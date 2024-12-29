@@ -38,11 +38,8 @@ export default class scene2 extends Phaser.Scene {
 
 
         const opponent= this.add.sprite(700, 200, "bulbasaur");
-        const player = this.add.sprite(200, 300 , "pikachu");
-        player.setScale(3)
+        
         opponent.setScale(3)
-
-        player.play('player');
         opponent.play('opponent');
 
         const appear=this.add.text(465,410,"A wild Bulbasaur appeared!",
@@ -96,9 +93,14 @@ export default class scene2 extends Phaser.Scene {
             run.destroy();
             fight.destroy();
             appear.destroy();
+
+            const player = this.add.sprite(200, 300 , "pikachu");
+            player.setScale(3);
+            player.play('player');
+
             const boxWidth = 200;
         const boxHeight = 50;
-        const borderColor = 0xff0000; // Red color
+        const borderColor = 0xFFFF00;
         const borderWidth = 2;
 
         // Add a Graphics object for the border
@@ -183,6 +185,7 @@ export default class scene2 extends Phaser.Scene {
             run.destroy();
             fight.destroy();
             appear.destroy();
+            opponent.destroy();
         });
     }
     createHp(x: number, y: number) {
@@ -192,5 +195,5 @@ export default class scene2 extends Phaser.Scene {
         bar.lineStyle(0.75, 0x000000);
         bar.strokeRoundedRect(x, y, 250, 20, 5);
         return bar; 
-    }
+    }     
 }
