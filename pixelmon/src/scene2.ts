@@ -1,17 +1,30 @@
 import Phaser from "phaser";
+import { POKEMON } from "./pokemon";
 
 export default class scene2 extends Phaser.Scene {
+
+    //generating random pokemon
+    
+    keys = Object.keys(POKEMON) as Array<keyof typeof POKEMON>; 
+    randomIndex = Math.floor(Math.random() * this.keys.length); 
+    pokemon = this.keys[this.randomIndex];
+
+   
+
+
     constructor() {
         super("scene2");
     }
     preload()
-    {
+    {   
         this.load.image("battleScene","src/assets/images/battle_scene_bg.jpg");
-        this.load.atlas("bulbasaur", "src/assets/pokemon/bulbasaur_front.png","src/assets/pokemon_json/bulbasaur_front.json");
+        this.load.atlas(this.pokemon, `src/assets/pokemon/${this.pokemon}_front.png`,`src/assets/pokemon_json/${this.pokemon}_front.json`);
         this.load.atlas("pikachu", "src/assets/pokemon/pikachu_back.png","src/assets/pokemon_json/pikachu_back.json");
         this.load.image("hpBg","src/assets/images/hp_bg.png");
     }
     create() {
+
+        // battle background 
         const battleSceneBg= this.add.image(0, -0, "battleScene");
         battleSceneBg.setOrigin(0, 0);
         battleSceneBg.setScale(
@@ -21,10 +34,10 @@ export default class scene2 extends Phaser.Scene {
         
         battleSceneBg.y-=50
         
-        
+        //sprite animation
         this.anims.create({
             key: 'opponent', 
-            frames: this.anims.generateFrameNames('bulbasaur'), 
+            frames: this.anims.generateFrameNames(this.pokemon), 
             frameRate: 5, 
             repeat: -1,    // Loop indefinitely
         })
@@ -37,12 +50,14 @@ export default class scene2 extends Phaser.Scene {
         })
 
 
-        const opponent= this.add.sprite(700, 200, "bulbasaur");
+        const opponent= this.add.sprite(700, 200, this.pokemon);
         
         opponent.setScale(3)
         opponent.play('opponent');
 
-        const appear=this.add.text(465,410,"A wild Bulbasaur appeared!",
+        //wild pokemon 
+
+        const appear=this.add.text(465,410,`A wild ${this.pokemon} appeared!`,
             {
             fontSize: "24px",
             color: "#ffffff",
@@ -93,6 +108,16 @@ export default class scene2 extends Phaser.Scene {
             run.destroy();
             fight.destroy();
             appear.destroy();
+            this.data.set('pokemon', this.pokemon);
+
+
+            // if (this.scene) {
+            //     this.scene.start("scene3");
+            // } else {
+            //     console.error("Scene Manager is not available.");
+            // }
+
+
 
             const player = this.add.sprite(200, 300 , "pikachu");
             player.setScale(3);
@@ -171,12 +196,10 @@ export default class scene2 extends Phaser.Scene {
 
         this.add.container(10, 100,[
             this.add.image(0,0,"hpBg").setOrigin(0,0).setScale(0.7,0.7), 
-            this.add.text(30,20,"BULBASAUR",{color:"#000000", fontStyle:"bold"}), 
+            this.add.text(30,20,this.pokemon,{color:"#000000", fontStyle:"bold"}), 
             this.createHp(54, 45),
             this.add.text(30, 48 , "HP", {color: "#000000",fontStyle:"bold"} ).setOrigin(0,0),
-            
-            
-        ]);
+        ]);
         });
 
         option2.on('pointerdown',()=>{
@@ -194,6 +217,6 @@ export default class scene2 extends Phaser.Scene {
         bar.fillRoundedRect(x,y,250 , 20 ,5);
         bar.lineStyle(0.75, 0x000000);
         bar.strokeRoundedRect(x, y, 250, 20, 5);
-        return bar; 
-    }     
+        return bar;
+}     
 }

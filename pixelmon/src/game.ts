@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
+import { POKEMON } from './pokemon';
 import scene1 from './scene1';
 import scene2 from './scene2';
-
+// import scene3 from './scene3';
 const config = {
     type: Phaser.AUTO,
     width: 960,
