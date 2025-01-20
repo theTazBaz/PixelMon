@@ -13,7 +13,7 @@ export const POKEMON = Object.freeze({
     oddish: 'oddish',
     pidgey: 'pidgey',
     pikachu: 'pikachu',
-    powliwag: 'powliwag',
+    // powliwag: 'powliwag',
     psyduck:  'psyduck',
     rattata: 'rattata',
     sandshrew: 'sandshrew',

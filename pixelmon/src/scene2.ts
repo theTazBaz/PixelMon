@@ -1,15 +1,31 @@
 import Phaser from "phaser";
 import { POKEMON } from "./pokemon";
+import { StateMachine } from "./battle_state";
+
+
+const BATTLE_STATES = Object.freeze({
+    INTRO : 'INTRO',//set up game objects 
+    PRE_BATTLE_INFO: 'PRE_BATTLE_INFO',// health bar opp pokemon
+    BRING_OUT_PLAYER : 'BRING_OUT_PLAYER',// player pokemon + health BAR
+    PLAYER_INPUT : 'PLAYER_INPUT',// battle menu  fight / run 
+    ENEMY_INPUT : 'ENEMY_INPUT',// enemy chooses attack ai logic/ random 
+    BATTLE : 'BATTLE' ,//switching who attacks damage
+    POST_BATTLE_CHECK : 'POST_BATTLE_CHECK' ,//player ran a away switching etc
+    FINISHED : 'FINISHED' ,// battle finish knock out the opp
+    FLEE_ATTEMPT : 'FLEE_ATTEMPT', //run away
+
+})
+
 
 export default class scene2 extends Phaser.Scene {
+
+    private battleStateMachine!: StateMachine
 
     //generating random pokemon
     
     keys = Object.keys(POKEMON) as Array<keyof typeof POKEMON>; 
     randomIndex = Math.floor(Math.random() * this.keys.length); 
     pokemon = this.keys[this.randomIndex];
-
-   
 
 
     constructor() {
@@ -210,7 +226,10 @@ export default class scene2 extends Phaser.Scene {
             appear.destroy();
             opponent.destroy();
         });
+
+        this.createBattleStateMachine();
     }
+
     createHp(x: number, y: number) {
         const bar =this.add.graphics();
         bar.fillStyle(0x3CB371,1);
@@ -218,5 +237,100 @@ export default class scene2 extends Phaser.Scene {
         bar.lineStyle(0.75, 0x000000);
         bar.strokeRoundedRect(x, y, 250, 20, 5);
         return bar;
-}     
 }
+
+
+    private createBattleStateMachine(){
+
+        this.battleStateMachine = new StateMachine('battle', this);
+        this.battleStateMachine.addState({
+            name : BATTLE_STATES.INTRO ,   
+            onEnter: ()=> {
+                // scene setup / transition 
+                this.time.delayedCall(500, ()=>{
+                    this.battleStateMachine.setState(BATTLE_STATES.PRE_BATTLE_INFO);
+                })
+
+
+            }
+        }); 
+        this.battleStateMachine.addState({
+            name : BATTLE_STATES.PRE_BATTLE_INFO ,
+            onEnter: ()=> {
+                //wait for enemy monster to appear and notify player 
+                //wild whatever has appeared
+
+                this.time.delayedCall(500, ()=> {
+                    this.battleStateMachine.setState(BATTLE_STATES.BRING_OUT_PLAYER);
+                })
+            
+
+                
+            }
+        })
+        
+        this.battleStateMachine.addState({
+            name : BATTLE_STATES.BRING_OUT_PLAYER ,  
+            onEnter: ()=> {
+                //wait for player monster to appear and notify thhe player 
+                
+                this.time.delayedCall(500, ()=> {
+                    this.battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT);
+                })
+
+                
+            }  
+        }); 
+        this.battleStateMachine.addState({
+            name : BATTLE_STATES.PLAYER_INPUT ,
+            onEnter: ()=> {
+
+                //show main battle mennu 
+                this.time.delayedCall(500, ()=> {
+                    this.battleStateMachine.setState(BATTLE_STATES.ENEMY_INPUT);
+                })
+
+                
+            }
+        })
+        this.battleStateMachine.addState({
+            name : BATTLE_STATES.ENEMY_INPUT,  
+            onEnter: ()=> {
+                //pick a random move for the  enemey 
+                this.time.delayedCall(500, ()=> {
+                    this.battleStateMachine.setState(BATTLE_STATES.BATTLE);
+                })
+
+                
+            }  
+        }); 
+        this.battleStateMachine.addState({
+            name : BATTLE_STATES.BATTLE ,
+            onEnter: ()=> {
+
+                
+            }
+        })
+        this.battleStateMachine.addState({
+            name : BATTLE_STATES.FINISHED ,   
+            onEnter: ()=> {
+
+                
+            } 
+        }); 
+        this.battleStateMachine.addState({
+            name : BATTLE_STATES.FLEE_ATTEMPT,
+            onEnter: ()=> {
+
+                
+            }
+        })
+        //start state machine
+        this.battleStateMachine.setState('INTRO')
+    }
+
+    }
+
+
+
+
