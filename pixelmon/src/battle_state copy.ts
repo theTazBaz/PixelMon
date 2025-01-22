@@ -49,7 +49,7 @@ export class StateMachine{
     //state transition logic 
 
     setState(name:string ): void {
-        console.log(" set state  is called ")
+
         const methodName = "setState ";
 
         if(!this.states.has(name)){
@@ -72,10 +72,10 @@ export class StateMachine{
 
         if( this.currentState?.onEnter){
             console.log (`[${StateMachine.name}-${this.id} : ${methodName}] ${this.currentState.name} on enter invoked`);
-
+            this.currentState.onEnter();
         }
-        this.currentState?.onEnter
-
+        
+        this.isChangingState = false;
     }
 
     //adding new state to machine 

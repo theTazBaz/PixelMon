@@ -1,10 +1,11 @@
 import Phaser from "phaser";
-import { POKEMON } from "./pokemon";
+import {POKEMON , HEALTH_BAR_ASSETS, CURSORS} from "./asset_keys"
+import { BattleMenu } from "./battle-menu";
+import { Direction, DIRECTION } from "./direction";
 import { StateMachine } from "./battle_state";
 
-
 const BATTLE_STATES = Object.freeze({
-    INTRO : 'INTRO',//set up game objects 
+    INTRO : 'INTRO', //set up game objects 
     PRE_BATTLE_INFO: 'PRE_BATTLE_INFO',// health bar opp pokemon
     BRING_OUT_PLAYER : 'BRING_OUT_PLAYER',// player pokemon + health BAR
     PLAYER_INPUT : 'PLAYER_INPUT',// battle menu  fight / run 
@@ -19,248 +20,264 @@ const BATTLE_STATES = Object.freeze({
 
 export default class scene2 extends Phaser.Scene {
 
+    private battlemenu!: BattleMenu;
+    private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
     private battleStateMachine!: StateMachine
+    private enterKey!: Phaser.Input.Keyboard.Key;
 
     //generating random pokemon
     
-    keys = Object.keys(POKEMON) as Array<keyof typeof POKEMON>; 
-    randomIndex = Math.floor(Math.random() * this.keys.length); 
-    pokemon = this.keys[this.randomIndex];
+    // keys = Object.keys(POKEMON) as Array<keyof typeof POKEMON>; 
+    // randomIndex = Math.floor(Math.random() * this.keys.length); 
+    // pokemon = this.keys[this.randomIndex];
+    pokemon = "bulbasaur"
+    private opponent !: Phaser.GameObjects.Sprite;
+    private battleIntroText !: Phaser.GameObjects.Text  ;
+
 
 
     constructor() {
         super("scene2");
+        
     }
-    preload()
-    {   
-        this.load.image("battleScene","src/assets/images/battle_scene_bg.jpg");
-        this.load.atlas(this.pokemon, `src/assets/pokemon/${this.pokemon}_front.png`,`src/assets/pokemon_json/${this.pokemon}_front.json`);
-        this.load.atlas("pikachu", "src/assets/pokemon/pikachu_back.png","src/assets/pokemon_json/pikachu_back.json");
-        this.load.image("hpBg","src/assets/images/hp_bg.png");
-    }
+
+    preload() {
+        this.load.image("battleScene", "src/assets/images/battle_scene_bg.jpg");
+        this.load.atlas(POKEMON.BULBASAUR, "src/assets/pokemon/bulbasaur_front.png", "src/assets/pokemon_json/bulbasaur_front.json");
+        this.load.atlas(POKEMON.PIKACHU, "src/assets/pokemon/pikachu_back.png", "src/assets/pokemon_json/pikachu_back.json");
+        this.load.image("healthbar_background", "src/assets/images/hp_bg.png");
+        this.load.image(HEALTH_BAR_ASSETS.LEFT_CAP, "src/assets/images/healthbar_left.png");
+        this.load.image(HEALTH_BAR_ASSETS.MIDDLE, "src/assets/images/healthbar_mid.png");
+        this.load.image(HEALTH_BAR_ASSETS.RIGHT_CAP, "src/assets/images/healthbar_right.png");
+        this.load.image(CURSORS.CURSOR, "src/assets/images/cursor.png");
+
+    }   
+
     create() {
 
-        // battle background 
-        const battleSceneBg= this.add.image(0, -0, "battleScene");
+        //battle background 
+        const battleSceneBg = this.add.image(0, -0, "battleScene");
         battleSceneBg.setOrigin(0, 0);
         battleSceneBg.setScale(
-            this.scale.width / battleSceneBg.width, 
-            (this.scale.height -100) / battleSceneBg.height 
+            this.scale.width / battleSceneBg.width,
+            (this.scale.height - 100) / battleSceneBg.height
         );
-        
-        battleSceneBg.y-=50
-        
-        //sprite animation
-        this.anims.create({
-            key: 'opponent', 
-            frames: this.anims.generateFrameNames(this.pokemon), 
-            frameRate: 5, 
-            repeat: -1,    // Loop indefinitely
-        })
-        
-        this.anims.create({
-            key: 'player', // Animation key
-            frames: this.anims.generateFrameNames('pikachu'), // Default frames
-            frameRate: 10, // Frames per second
-            repeat: -1,    // Loop indefinitely
-        })
+        battleSceneBg.y -= 50;
 
+        // animations 
 
-        const opponent= this.add.sprite(700, 200, this.pokemon);
-        
-        opponent.setScale(3)
+        this.anims.create({
+            key: 'opponent',
+            frames: this.anims.generateFrameNames(POKEMON.BULBASAUR),
+            frameRate: 5,
+            repeat: -1, 
+        });
+
+        this.anims.create({
+            key: 'player',
+            frames: this.anims.generateFrameNames(POKEMON.PIKACHU),
+            frameRate: 10,
+            repeat: -1, 
+        });
+
+        //battle Machine statts here 
+        this.createBattleStateMachine();
+
+        //Loading Pokemons
+        const opponent = this.add.sprite(700, 200, POKEMON.BULBASAUR);
+        opponent.setScale(3);
         opponent.play('opponent');
 
-        //wild pokemon 
+        const player = this.add.sprite(200, 300, POKEMON.PIKACHU);
+        player.setScale(3);
+        player.play('player');
 
-        const appear=this.add.text(465,410,`A wild ${this.pokemon} appeared!`,
+        const playerPokemonName = this.add.text(
+            30*0.75,
+            20*0.75,
+            POKEMON.PIKACHU,
             {
-            fontSize: "24px",
-            color: "#ffffff",
-        }).setOrigin(0.5);
-
-        const boxWidth = 200;
-        const boxHeight = 75;
-        const borderColor = 0xff0000; // Red color
-        const borderWidth = 2;
-
-        // Add a Graphics object for the border
-        const option1 = this.add.graphics();
-        option1.lineStyle(borderWidth, borderColor); // Border thickness and color
-        option1.strokeRect(250, 430, boxWidth, boxHeight); // Draw the border
-        const fight = this.add.text(
-            250 + boxWidth / 2, // X position: Center of the box
-            430 + boxHeight / 2, // Y position: Center of the box
-            "Fight", // Text content
-            {
-                fontSize: "24px",
-                color: "#ffffff",
+                color:'#000000' ,
+                fontSize: '22px',
             }
         );
-        fight.setOrigin(0.5);
 
-        const option2 = this.add.graphics();
-        option2.lineStyle(borderWidth, borderColor); 
-        option2.strokeRect(470, 430, boxWidth, boxHeight);
-        const run = this.add.text(
-            470 + boxWidth / 2,
-            430 + boxHeight / 2, 
-            "Run", 
-            {
-                fontSize: "24px",
-                color: "#ffffff",
-            }
-        );
-        run.setOrigin(0.5);
+        // Create health bar background
+        const healthbarBackground = this.add.image(0, 0, "healthbar_background");
+        healthbarBackground.setScale(0.75); // Adjust size of health bar background
+        healthbarBackground.setOrigin(0, 0);
 
-        option1.setInteractive(new Phaser.Geom.Rectangle(250, 440, boxWidth, boxHeight), Phaser.Geom.Rectangle.Contains);
-        option2.setInteractive(new Phaser.Geom.Rectangle(470, 440, boxWidth, boxHeight), Phaser.Geom.Rectangle.Contains);
-
-        // Add a click listener
-        option1.on('pointerdown', () => {
-            // Remove the current box and text
-            option1.destroy();
-            option2.destroy();
-            run.destroy();
-            fight.destroy();
-            appear.destroy();
-            this.data.set('pokemon', this.pokemon);
-
-
-            // if (this.scene) {
-            //     this.scene.start("scene3");
-            // } else {
-            //     console.error("Scene Manager is not available.");
-            // }
-
-
-
-            const player = this.add.sprite(200, 300 , "pikachu");
-            player.setScale(3);
-            player.play('player');
-
-            const boxWidth = 200;
-        const boxHeight = 50;
-        const borderColor = 0xFFFF00;
-        const borderWidth = 2;
-
-        // Add a Graphics object for the border
-        const border1 = this.add.graphics();
-        border1.lineStyle(borderWidth, borderColor); // Border thickness and color
-        border1.strokeRect(250, 400, boxWidth, boxHeight); // Draw the border
-        const move1 = this.add.text(
-            250 + boxWidth / 2, // X position: Center of the box
-            400 + boxHeight / 2, // Y position: Center of the box
-            "Thunderbolt", // Text content
-            {
-                fontSize: "24px",
-                color: "#ffffff",
-            }
-        );
-        move1.setOrigin(0.5);
-
-        const border2 = this.add.graphics();
-        border2.lineStyle(borderWidth, borderColor);
-        border2.strokeRect(470, 400, boxWidth, boxHeight); 
-        const move2 = this.add.text(
-            470 + boxWidth / 2, 
-            400 + boxHeight / 2, 
-            "Quick Attack", 
-            {
-                fontSize: "24px",
-                color: "#ffffff",
-            }
-        );
-        move2.setOrigin(0.5);
-
-        const border3 = this.add.graphics();
-        border3.lineStyle(borderWidth, borderColor);
-        border3.strokeRect(250, 470, boxWidth, boxHeight); 
-        const move3 = this.add.text(
-            250 + boxWidth / 2, 
-            470 + boxHeight / 2, 
-            "Electro Ball", 
-            {
-                fontSize: "24px",
-                color: "#ffffff",
-            }
-        );
-        move3.setOrigin(0.5);
-
-        const border4 = this.add.graphics();
-        border4.lineStyle(borderWidth, borderColor);
-        border4.strokeRect(470, 470, boxWidth, boxHeight);
-        const move4 = this.add.text(
-            470 + boxWidth / 2, 
-            470 + boxHeight / 2, 
-            "Tail Whip", 
-            {
-                fontSize: "24px",
-                color: "#ffffff",
-            }
-        );
-        move4.setOrigin(0.5);
-
-        this.add.container(600, 275,[
-            this.add.image(0,0,"hpBg").setOrigin(0,0).setScale(0.7,0.8), 
-            this.add.text(30,20,"PIKACHU",{color:"#000000", fontStyle:"bold"}), 
-            this.createHp(54, 45),
-            this.add.text(30, 48 , "HP", {color: "#000000",fontStyle:"bold"} ).setOrigin(0,0),
-            this.add.text(300,70,"25/25",{color:"#000000", fontStyle:"bold"}).setOrigin(1,0)
-            
+        // Add health bar and name to container
+        this.add.container(550, 275, [
+            healthbarBackground,
+            playerPokemonName,
+            this.createHealth(34*0.75,34*0.75),
+            this.add.text(
+                playerPokemonName.width+40*0.75,
+                26*0.75,
+                "Lvl 1",
+                {
+                    color:'#000000' ,
+                    fontSize: '16px',
+                }
+            ),
+            this.add.text(
+                30*0.75,
+                55*0.75,
+                "HP",
+                {
+                    color:'#000000' ,
+                    fontSize: '16px',
+                    fontStyle:'italic',
+                }
+            ),
+            this.add.text(
+                443*0.75,
+                90*0.75,
+                "25/25",
+                {
+                    color:'#000000' ,
+                    fontSize: '12px',
+                    
+                }
+            ).setOrigin(1,0),
         ]);
 
-        this.add.container(10, 100,[
-            this.add.image(0,0,"hpBg").setOrigin(0,0).setScale(0.7,0.7), 
-            this.add.text(30,20,this.pokemon,{color:"#000000", fontStyle:"bold"}), 
-            this.createHp(54, 45),
-            this.add.text(30, 48 , "HP", {color: "#000000",fontStyle:"bold"} ).setOrigin(0,0),
+        const opponentPokemonName = this.add.text(
+            30*0.75,
+            20*0.75,
+            POKEMON.BULBASAUR,
+            {
+                color:'#000000' ,
+                fontSize: '22px',
+            }
+        );
+        const opphealthbarBackground = this.add.image(0, 0, "healthbar_background");
+        opphealthbarBackground.setScale(0.75); // Adjust size of health bar background
+        opphealthbarBackground.setOrigin(0, 0);
+        // Add health bar and name to container
+        this.add.container(50, 25, [
+            opphealthbarBackground,
+            opponentPokemonName,
+            this.createHealth(34*0.75,34*0.75),
+            this.add.text(
+                opponentPokemonName.width+40*0.75,
+                26*0.75,
+                "Lvl 1",
+                {
+                    color:'#000000' ,
+                    fontSize: '16px',
+                }
+            ),
+            this.add.text(
+                30*0.75,
+                55*0.75,
+                "HP",
+                {
+                    color:'#000000' ,
+                    fontSize: '16px',
+                    fontStyle:'italic',
+                }
+            ),
+            this.add.text(
+                443*0.75,
+                90*0.75,
+                "25/25",
+                {
+                    color:'#000000' ,
+                    fontSize: '12px',
+                    
+                }
+            ).setOrigin(1,0),
         ]);
-        });
+        
 
-        option2.on('pointerdown',()=>{
-            option1.destroy();
-            option2.destroy();
-            run.destroy();
-            fight.destroy();
-            appear.destroy();
-            opponent.destroy();
-        });
 
-        this.createBattleStateMachine();
+        this.battlemenu= new BattleMenu(this);
+        this.cursorKeys = this.input.keyboard!.createCursorKeys();
+        this.enterKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
     }
 
-    createHp(x: number, y: number) {
-        const bar =this.add.graphics();
-        bar.fillStyle(0x3CB371,1);
-        bar.fillRoundedRect(x,y,250 , 20 ,5);
-        bar.lineStyle(0.75, 0x000000);
-        bar.strokeRoundedRect(x, y, 250, 20, 5);
-        return bar;
-}
+    update(){
+        
+        const wasEnterKeyPressed = Phaser.Input.Keyboard.JustDown(this.enterKey);
+        //code for player attack 
+        if (wasEnterKeyPressed) {
+            this.battlemenu.playerInput('OK');
+            if (this.battlemenu.selectedAttack === undefined) {
+                return;
+            }
+            console.log(`Player selected ${this.battlemenu.selectedAttack}`);
+        
+            this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
+                ['Pikachu attacked Bulbasaur!'],
+                () => {
+                    this.battlemenu.hideMainBattleMenu();
+                }
+            );
+        }
 
+        if(Phaser.Input.Keyboard.JustDown(this.cursorKeys.shift)){
+            this.battlemenu.playerInput('CANCEL');
+            return ;
+        }
+        
+        let selectedDirection :Direction= DIRECTION.NONE;
+        if(this.cursorKeys.left.isDown){
+            selectedDirection=DIRECTION.LEFT
+        }else if(this.cursorKeys.right.isDown){
+            selectedDirection=DIRECTION.RIGHT
+        }
+        else if(this.cursorKeys.up.isDown){
+            selectedDirection=DIRECTION.UP
+        }
+        else if(this.cursorKeys.down.isDown){
+            selectedDirection=DIRECTION.DOWN
+        }
+
+        if(selectedDirection !==DIRECTION.NONE){
+            this.battlemenu.playerInput(selectedDirection);
+        }
+    }
+
+    createHealth(x : number, y : number){
+        const scaleY = 0.65;
+        const leftCap = this.add.image(x, y, HEALTH_BAR_ASSETS.LEFT_CAP).setOrigin(0,0.5).setScale(1,scaleY);
+        const middle = this.add.image(leftCap.x+leftCap.width, y, HEALTH_BAR_ASSETS.MIDDLE).setOrigin(0,0.5).setScale(1,scaleY);
+        middle.displayWidth = 360*0.75;
+        const rightCap = this.add.image(middle.x+middle.displayWidth, y, HEALTH_BAR_ASSETS.RIGHT_CAP).setOrigin(0,0.5).setScale(1,scaleY);
+        return this.add.container(x,y,[leftCap, middle, rightCap]);
+    }
 
     private createBattleStateMachine(){
 
         this.battleStateMachine = new StateMachine('battle', this);
+
         this.battleStateMachine.addState({
             name : BATTLE_STATES.INTRO ,   
-            onEnter: ()=> {
+            onEnter: ()=> {                
                 // scene setup / transition 
-                this.time.delayedCall(500, ()=>{
+                this.time.delayedCall(5, ()=>{
                     this.battleStateMachine.setState(BATTLE_STATES.PRE_BATTLE_INFO);
                 })
-
-
             }
         }); 
+
+        // adding pre battle stuff
+
         this.battleStateMachine.addState({
             name : BATTLE_STATES.PRE_BATTLE_INFO ,
             onEnter: ()=> {
-                //wait for enemy monster to appear and notify player 
-                //wild whatever has appeared
+                //wait for enemy monster to this.battleIntroText and notify player 
 
-                this.time.delayedCall(500, ()=> {
+                //this.opponent pokemon this.battleIntroTexts 
+                // this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput([`wild ${POKEMON.BULBASAUR} appeared !`],
+                //     ()=>{
+                //         //wait for text animation to complete 
+
+                //     }
+                // )
+                this.time.delayedCall(5, ()=> {
                     this.battleStateMachine.setState(BATTLE_STATES.BRING_OUT_PLAYER);
                 })
             
@@ -272,23 +289,27 @@ export default class scene2 extends Phaser.Scene {
         this.battleStateMachine.addState({
             name : BATTLE_STATES.BRING_OUT_PLAYER ,  
             onEnter: ()=> {
-                //wait for player monster to appear and notify thhe player 
+                //wait for player monster to this.battleIntroText and notify thhe player
                 
-                this.time.delayedCall(500, ()=> {
+                // this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput([`Go ${POKEMON.PIKACHU}!`])
+                this.time.delayedCall(5, ()=> {
                     this.battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT);
-                })
+                    }) 
 
                 
             }  
         }); 
+
+
         this.battleStateMachine.addState({
             name : BATTLE_STATES.PLAYER_INPUT ,
             onEnter: ()=> {
+                this.battlemenu.showMainBattleMenu();
 
                 //show main battle mennu 
-                this.time.delayedCall(500, ()=> {
-                    this.battleStateMachine.setState(BATTLE_STATES.ENEMY_INPUT);
-                })
+                // this.time.delayedCall(5, ()=> {
+                //     this.battleStateMachine.setState(BATTLE_STATES.ENEMY_INPUT);
+                // })
 
                 
             }
@@ -296,10 +317,7 @@ export default class scene2 extends Phaser.Scene {
         this.battleStateMachine.addState({
             name : BATTLE_STATES.ENEMY_INPUT,  
             onEnter: ()=> {
-                //pick a random move for the  enemey 
-                this.time.delayedCall(500, ()=> {
-                    this.battleStateMachine.setState(BATTLE_STATES.BATTLE);
-                })
+                this.battleStateMachine.setState(BATTLE_STATES.BATTLE);
 
                 
             }  
@@ -307,10 +325,19 @@ export default class scene2 extends Phaser.Scene {
         this.battleStateMachine.addState({
             name : BATTLE_STATES.BATTLE ,
             onEnter: ()=> {
+                //logic for Battle
 
                 
             }
         })
+
+        this.battleStateMachine.addState({
+            name : BATTLE_STATES.POST_BATTLE_CHECK ,   
+            onEnter: ()=> {
+
+                
+            } 
+        }); 
         this.battleStateMachine.addState({
             name : BATTLE_STATES.FINISHED ,   
             onEnter: ()=> {
@@ -322,6 +349,12 @@ export default class scene2 extends Phaser.Scene {
             name : BATTLE_STATES.FLEE_ATTEMPT,
             onEnter: ()=> {
 
+                this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput([`Got away Safely!`],
+                    ()=>{
+                        this.battleStateMachine.setState(BATTLE_STATES.FINISHED);
+                    }
+                )
+
                 
             }
         })
@@ -329,8 +362,4 @@ export default class scene2 extends Phaser.Scene {
         this.battleStateMachine.setState('INTRO')
     }
 
-    }
-
-
-
-
+}
