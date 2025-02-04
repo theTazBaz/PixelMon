@@ -1,0 +1,8 @@
+html, body{
+  overflow: hidden;
+}
+
+@font-face {
+  font-family: "DigitalClock";
+  src: url("src/assets/fonts/digital-7.ttf") format("truetype");
+}

@@ -1,0 +1,34 @@
+[
+    {
+        "id" : 1 , 
+        "name" : "Growl",
+        "animationName " : "GROWL"
+    },
+    {
+        "id" : 2 , 
+        "name" : "Thunder Shock",
+        "animationName " : "THUNDER_SHOCK"
+    },
+    {
+        "id" : 3, 
+        "name" : "Tail Whip",
+        "animationName " : "TAIL_WHIP"
+    },
+    {
+        "id" : 4, 
+        "name" : "Thuder Wave",
+        "animationName " : "THUNDER_WAVE"
+    },
+
+    {
+        "id" : 5, 
+        "name" : "Tackle",
+        "animationName " : "TACKLE"
+    },
+    
+    {
+        "id" : 6, 
+        "name" : "Vine Whip",
+        "animationName " : "VINE_WHIP"
+    }
+]
