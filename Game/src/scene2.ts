@@ -19,6 +19,7 @@ const BATTLE_STATES = Object.freeze({
     POST_BATTLE_CHECK : 'POST_BATTLE_CHECK' ,//player ran a away switching etc
     FINISHED : 'FINISHED' ,// battle finish knock out the opp
     FLEE_ATTEMPT : 'FLEE_ATTEMPT', //run away
+    SWITCH_POKEMON : 'SWITCH_POKEMON',
 
 }) 
 
@@ -31,19 +32,30 @@ export default class scene2 extends Phaser.Scene {
     activeOpponentPokemon!:BattlePokemon;
     activePlayerPokemon!:BattlePokemon;
     private activePlayerAttackIndex!: number;
+    private keys!:any;
+    private randomIndex!:number;
+    private OPPONENT!: any;
+    private PLAYER!: any;
 
+
+    
 
     constructor() {
         super("scene2");
     }
     init(){
         this.activePlayerAttackIndex=-1;
+        this.keys = Object.keys(POKEMON) as Array<keyof typeof POKEMON>; 
+        this.randomIndex = Math.floor(Math.random() * this.keys.length); 
+        this.OPPONENT = this.keys[this.randomIndex];
+        this.PLAYER = POKEMON.PIKACHU;
+
     }
 
     preload() {
         this.load.image("battleScene", "src/assets/images/battle_scene_bg.jpg");
-        this.load.atlas(POKEMON.BULBASAUR, "src/assets/pokemon/bulbasaur_front.png", "src/assets/pokemon_json/bulbasaur_front.json");
-        this.load.atlas(POKEMON.PIKACHU, "src/assets/pokemon/pikachu_back.png", "src/assets/pokemon_json/pikachu_back.json");
+        this.load.atlas(this.OPPONENT, `src/assets/pokemon/${this.OPPONENT}_front.png`,`src/assets/pokemon_json/${this.OPPONENT}_front.json`);
+        this.load.atlas(this.PLAYER, "src/assets/pokemon/pikachu_back.png", "src/assets/pokemon_json/pikachu_back.json");
         this.load.image("healthbar_background", "src/assets/images/hp_bg.png");
         this.load.image(HEALTH_BAR_ASSETS.LEFT_CAP, "src/assets/images/healthbar_left.png");
         this.load.image(HEALTH_BAR_ASSETS.MIDDLE, "src/assets/images/healthbar_mid.png");
@@ -71,12 +83,12 @@ export default class scene2 extends Phaser.Scene {
         this.activePlayerPokemon = new playerPokemon({
             scene: this,
             _pokemonDetails: {
-                name: "pikachu",
-                assetKey: POKEMON.PIKACHU,
+                name: this.PLAYER,
+                assetKey: this.PLAYER,
                 currentHp: 25,
                 maxHp: 25,
                 attackIds: [1,2,3,4],
-                baseAttack: 5,
+                baseAttack: 15,
             },
         });
 
@@ -85,12 +97,12 @@ export default class scene2 extends Phaser.Scene {
         this.activeOpponentPokemon = new enemyPokemon({
             scene:this,
             _pokemonDetails: {
-                name: "bulbasaur",
-                assetKey: POKEMON.BULBASAUR,
+                name: this.OPPONENT,
+                assetKey: this.OPPONENT,
                 currentHp:25,
                 maxHp:25,
-                attackIds:[1,5,6],
-                baseAttack: 5,
+                attackIds:[1,5],
+                baseAttack: 10,
             }
 
         });
@@ -113,6 +125,18 @@ export default class scene2 extends Phaser.Scene {
         // this.handleBattlesequence();
         const wasEnterKeyPressed = Phaser.Input.Keyboard.JustDown(this.enterKey);
         //code for player attack 
+        if(wasEnterKeyPressed && (
+            this.battleStateMachine.currentStateName===BATTLE_STATES.PRE_BATTLE_INFO||
+            this.battleStateMachine.currentStateName===BATTLE_STATES.POST_BATTLE_CHECK||
+            this.battleStateMachine.currentStateName===BATTLE_STATES.FLEE_ATTEMPT)){
+            this.battlemenu.playerInput('OK');
+            return ;
+        }
+
+        if(this.battleStateMachine.currentStateName!== BATTLE_STATES.PLAYER_INPUT){
+            return ;
+        }
+
         if (wasEnterKeyPressed) {
             this.battlemenu.playerInput('OK');
             if (this.battlemenu.selectedAttack === undefined) {
@@ -168,7 +192,7 @@ export default class scene2 extends Phaser.Scene {
             name : BATTLE_STATES.INTRO ,   
             onEnter: ()=> {                
                 // scene setup / transition 
-                this.time.delayedCall(5, ()=>{
+                this.time.delayedCall(600, ()=>{
                     this.battleStateMachine.setState(BATTLE_STATES.PRE_BATTLE_INFO);
                 })
             }
@@ -204,8 +228,11 @@ export default class scene2 extends Phaser.Scene {
                 this.activePlayerPokemon.showPokemon();
 
                 //wait for player monster to this.battleIntroText and notify thhe player
-                this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput([`Go ${this.activePlayerPokemon.name }!`],()=>{
-                    this.battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT);
+                this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(`Go ${this.activePlayerPokemon.name }!`,()=>{
+                    this.time.delayedCall(5,()=>{
+                        this.battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT);
+                    })
+                    
                 })
                 
 
@@ -220,13 +247,6 @@ export default class scene2 extends Phaser.Scene {
             name : BATTLE_STATES.PLAYER_INPUT ,
             onEnter: ()=> {
                 this.battlemenu.showMainBattleMenu();
-
-                //show main battle mennu 
-                // this.time.delayedCall(5, ()=> {
-                //     this.battleStateMachine.setState(BATTLE_STATES.ENEMY_INPUT);
-                // })
-
-                
             }
         })
         this.battleStateMachine.addState({
@@ -295,13 +315,13 @@ export default class scene2 extends Phaser.Scene {
 
     private playerAttack(){
 
-        this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput([`${this.activePlayerPokemon.name} used ${this.activePlayerPokemon.attacks[this.activePlayerAttackIndex].name}` ], ()=>{
-            this.time.delayedCall(500,()=>
-            {
-                this.activeOpponentPokemon.takeDamage(this.activePlayerPokemon.baseAttack,()=>{
-                    this.enemyAttack();
+        this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(`${this.activePlayerPokemon.name} used ${this.activePlayerPokemon.attacks[this.activePlayerAttackIndex].name}` , ()=>{
+            this.time.delayedCall(1200,()=>
+                {
+                    this.activeOpponentPokemon.takeDamage(this.activePlayerPokemon.baseAttack,()=>{
+                        this.enemyAttack();
+                    })
                 })
-            })
         })
 
     }
@@ -312,15 +332,11 @@ export default class scene2 extends Phaser.Scene {
             return;
         }
 
-        
-        
-        this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput([`${this.activeOpponentPokemon.name} used ${this.activeOpponentPokemon.attacks[2].name}`], ()=>{
+        this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(`${this.activeOpponentPokemon.name} used ${this.activeOpponentPokemon.attacks[1].name}`, ()=>{
             this.time.delayedCall(500,()=>
             {
                 this.activePlayerPokemon.takeDamage(this.activeOpponentPokemon.baseAttack,()=>{
                 this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
-
-                
                 })
             })
         })
@@ -328,12 +344,10 @@ export default class scene2 extends Phaser.Scene {
     }
 
     private postBattleCheck(){
-
         if(this.activeOpponentPokemon.isFainted){
-            this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput([`Wild ${this.activeOpponentPokemon.name} Fainted `, "You gained Experience"],
+            this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput([`Wild ${this.activeOpponentPokemon.name} Fainted `, `${this.activePlayerPokemon.name} gained Experience`],
                 ()=>{
                     this.battleStateMachine.setState(BATTLE_STATES.FINISHED);
-
                     })
             return ;}
     if(this.activePlayerPokemon.isFainted){

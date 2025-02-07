@@ -54,7 +54,10 @@ export class BattleMenu{
     private activeBattleMenu: ActiveBattleMenu;
     private selectedMove: MoveList;
     private PokemonAttackList! : Phaser.GameObjects.Container;
-    private activePlayerPokemon!: BattlePokemon
+    private activePlayerPokemon!: BattlePokemon;
+    private userInputCursor!: Phaser.GameObjects.Image;
+    private unserInputCursorTween !: Phaser.Tweens.Tween;
+    // private switchPokemon!: boolean;
 
 
 
@@ -73,6 +76,8 @@ export class BattleMenu{
         this.SelectedAttackIndex=undefined
         this.activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_MAIN;
         this.selectedMove = MOVES_LIST.MOVE_1;
+        this.createPlayerInputCursor();
+        // this.switchPokemon=false;
 
     }
 
@@ -97,6 +102,7 @@ export class BattleMenu{
         //this is the pokemon attacks Menu 
         this.HidePokemonAttackMenu();
         this.PlayerOptions.setAlpha(1);
+        // this.switchPokemon=false;
     }
 
     //To hide the main Info Pane
@@ -120,6 +126,22 @@ export class BattleMenu{
         this.PlayerOptions.setAlpha(1);
     }
 
+    playerInputCursorAnimation(){
+        this.userInputCursor.setPosition(
+            this.textLine1.displayWidth+ this.userInputCursor.displayWidth * 2.7,
+            this.userInputCursor.y
+        )
+        this.userInputCursor.setAlpha(1);
+        this.unserInputCursorTween.restart();
+
+
+    }
+    hideInputCursor(){
+        this.userInputCursor.setAlpha(0);
+        this.unserInputCursorTween.pause();
+    }
+
+
     playerInput(input: 'OK' | 'CANCEL' |Direction  ){
 
         if(this.WaitForPlayerInput && (input === 'CANCEL' ||input==='OK')){
@@ -137,7 +159,7 @@ export class BattleMenu{
             if(this.activeBattleMenu=== ACTIVE_BATTLE_MENU.BATTLE_MAIN){
 
                 this.chooseMainBattleOption();                
-                return
+                return;
             }
             
             if(this.activeBattleMenu=== ACTIVE_BATTLE_MENU.BATTLE_MOVE_SELECT){
@@ -156,6 +178,18 @@ export class BattleMenu{
         
     }
 
+    updateInfoPaneMsgsWithoutPlayerInput(message: string, callback?: ()=>void ){
+        this.textLine1.setText('').setAlpha(1);
+        
+        this.textLine1.setText(message);
+        
+        this.WaitForPlayerInput=false;
+        if(callback){  
+            callback();
+        }
+
+    }
+
     // This is for messages in the Player options  
     updateInfoPaneMsgsWaitForPlayerInput(messages: string[], callback?: ()=>void ){
         this.InfoPanelMessages=messages;
@@ -168,6 +202,7 @@ export class BattleMenu{
     private updateInfoPaneWithMessage(){
         this.WaitForPlayerInput= false;
         this.addText();
+        this.hideInputCursor();
 
         if(this.InfoPanelMessages.length===0){
             if(this.InfoPanelCallBack){
@@ -181,16 +216,12 @@ export class BattleMenu{
         const msgToDisplay: string = this.InfoPanelMessages.shift() ?? "Default message";
         this.addText(msgToDisplay)
         this.WaitForPlayerInput = true;
+        this.playerInputCursorAnimation();
 
     }
 
     private createMainBattleMenu(){
-        this.MainMenu =  this.scene.add.container(0,390,[
-            // this.scene.add.text(50, 60, `What Should ${this.activePlayerPokemon.name} Do?`, {
-            //     fontSize: "20px",
-            //     color: "#fff",
-            // })
-            ]) ;
+        this.MainMenu =  this.scene.add.container(0,390,[]) ;
         
         this.cursorObject = this.scene.add.image(60, 45, CURSORS.CURSOR , 0).setOrigin(0.5).setScale(2.5)
 
@@ -401,6 +432,8 @@ export class BattleMenu{
 
     private SwitchToMainBattleMenu(){
 
+        this.WaitForPlayerInput=false;
+        this.hideInputCursor();
         this.HidePokemonAttackMenu();
         this.showMainBattleMenu();
         this.addText();
@@ -415,6 +448,7 @@ export class BattleMenu{
         if(this.selectedBattleMenuOption === BATTLE_MENU_OPTIONS.FIGHT ){
             // this.hideMainBattleMenu();
             this.ShowPokemonAttackMenu();
+            this.addText();
             console.log(this.activeBattleMenu);
             return; 
 
@@ -481,5 +515,23 @@ export class BattleMenu{
             this.textLine1.setText("");
         }
 
+    }
+    private createPlayerInputCursor(){
+        this.userInputCursor=this.scene.add.image(0,0, CURSORS.CURSOR );
+        this.userInputCursor.setAngle(90).setScale(3.5,2);
+        this.userInputCursor.setAlpha(0);
+
+        this.unserInputCursorTween= this.scene.add.tween({
+            delay : 0 ,
+            duration:500,
+            repeat: -1 ,
+            y:{
+                from : 460,
+                start : 460 ,
+                to : 466,
+            },
+            targets: this.userInputCursor,
+        });
+        this.unserInputCursorTween.pause();
     }
 }

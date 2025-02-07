@@ -12,7 +12,7 @@ export class BattlePokemon {
     protected currentHealth: number;
     protected maxHealth: number;
     protected _phaserHealthBarGameContainer!: Phaser.GameObjects.Container;
-
+    protected data: any;
     constructor(config: BattlePokemonConfig, position: Coordinate ) {
         this._scene = config.scene;
         this._pokemonDetails = config._pokemonDetails;

@@ -1,6 +1,6 @@
 import { BattlePokemon } from "./battle-pokemon";
 import { BattlePokemonConfig , Coordinate } from "./typedef"
-import { POKEMON } from "./asset_keys";
+// import { POKEMON } from "./asset_keys";
 
 const ENEMY_LOCATION: Coordinate = {
     x: 700,
@@ -13,7 +13,7 @@ export class enemyPokemon extends BattlePokemon{
         super(config, ENEMY_LOCATION);
         this._scene.anims.create({
             key: '_phaserGameObject',
-            frames: this._scene.anims.generateFrameNames(POKEMON.BULBASAUR),
+            frames: this._scene.anims.generateFrameNames(this._pokemonDetails.name),
             frameRate: 5,
             repeat: -1, // Loop indefinitely
         });
