@@ -12,7 +12,10 @@ export class BattlePokemon {
     protected currentHealth: number;
     protected maxHealth: number;
     protected _phaserHealthBarGameContainer!: Phaser.GameObjects.Container;
-    protected data: any;
+
+    protected _healthBarText!: Phaser.GameObjects.Text;
+
+
     constructor(config: BattlePokemonConfig, position: Coordinate ) {
         this._scene = config.scene;
         this._pokemonDetails = config._pokemonDetails;
@@ -65,49 +68,72 @@ export class BattlePokemon {
     }
 
     takeDamage(damage: number, callback?: () => void) {
-    this.currentHealth -= damage;
-    if (this.currentHealth < 0) {
-        this.currentHealth = 0;
+        this.currentHealth -= damage;
+        if (this.currentHealth < 0) {
+            this.currentHealth = 0;
+        }
+        this._healthBar.setMeterPercentageAnimated(this.currentHealth / this.maxHealth, {
+            callback: callback
+        });
+    
+        // Update the health bar text
+        this.setHealthBarText();
     }
-    this._healthBar.setMeterPercentageAnimated(this.currentHealth / this.maxHealth, {
-        callback: callback
-    });
-}
+    
+  
+    setHealthBarText() {
+     if (this._healthBarText) {
+         this._healthBarText.setText(`${this.currentHealth}/${this.maxHealth}`);
+     }
+  }
 
+ 
 createHealthBarComponents() {
-this._healthBar = new HealthBar(this._scene,34*0.75,34*0.75); 
-
-const PokemonName = this._scene.add.text(
-    30*0.75,
-    20*0.75,
-    this.name,
-    {
-        color:'#000000' ,
-        fontSize: '22px',
-    }
-);
-const pokemonLevelText = this._scene.add.text(
-PokemonName.width+40*0.75,
-26*0.75,
-"Lvl 1",
-{
-        color:'#000000' ,
-        fontSize: '16px',
-    }
-);
-const pokemonHPText = this._scene.add.text(
-    30*0.75,
-    55*0.75,
-    "HP",
-    {
-        color:'#000000' ,
-        fontSize: '16px',
-        fontStyle:'italic',
-    }
-);
+    this._healthBar = new HealthBar(this._scene, 34 * 0.75, 34 * 0.75);
+ 
+    const PokemonName = this._scene.add.text(
+        30 * 0.75,
+        20 * 0.75,
+        this.name,
+        {
+            color: '#000000',
+            fontSize: '22px',
+        }
+    );
+ 
+    const pokemonLevelText = this._scene.add.text(
+        PokemonName.width + 40 * 0.75,
+        26 * 0.75,
+        "Lvl 1",
+        {
+            color: '#000000',
+            fontSize: '16px',
+        }
+    );
+ 
+    const pokemonHPText = this._scene.add.text(
+        30 * 0.75,
+        55 * 0.75,
+        "HP",
+        {
+            color: '#000000',
+            fontSize: '16px',
+            fontStyle: 'italic',
+        }
+    );
 const healthbarBackground = this._scene.add.image(0, 0, "healthbar_background");
 healthbarBackground.setScale(0.75); // Adjust size of health bar background
 healthbarBackground.setOrigin(0, 0);
+
+this._healthBarText = this._scene.add.text(
+    443 * 0.75,
+    90 * 0.75,
+    `${this.currentHealth}/${this.maxHealth}`,
+    {
+        color: '#000000',
+        fontSize: '12px',
+    }
+).setOrigin(1, 0);
 
 this._phaserHealthBarGameContainer = this._scene.add.container(50, 25, [
         healthbarBackground,
@@ -115,16 +141,7 @@ this._phaserHealthBarGameContainer = this._scene.add.container(50, 25, [
         pokemonLevelText,
         pokemonHPText,
         this._healthBar.container,
-        this._scene.add.text(
-            443*0.75,
-            90*0.75,
-            "25/25",
-            {
-                color:'#000000' ,
-                fontSize: '12px',
-                
-            }
-        ).setOrigin(1,0),
+        this._healthBarText,
 ]);
 
 
@@ -140,3 +157,4 @@ showPokemon(){
 
 }
 }
+
