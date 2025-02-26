@@ -30,5 +30,10 @@
         "id" : 6, 
         "name" : "Vine Whip",
         "animationName " : "VINE_WHIP"
+    },
+    {
+        "id" : 7, 
+        "name" : "Sand Attack",
+        "animationName " : "SAND_ATTACK"
     }
 ]

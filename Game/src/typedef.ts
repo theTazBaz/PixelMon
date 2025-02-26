@@ -1,13 +1,14 @@
 export interface Pokemon {
+   PokemonId: number
    name: string;
    assetKey: string;
-   assetFrame?: number;
+   assetFrame: number;
    maxHp: number;
    currentHp: number;
    baseAttack: number;
    attackIds: number[];
+   currentLevel: number
 }
-
 export interface BattlePokemonConfig {
    scene: Phaser.Scene;
    _pokemonDetails: Pokemon;

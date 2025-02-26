@@ -22,5 +22,9 @@ export class Background{
         this.backgroundGameObject.setAlpha(1);
     }
 
+    transparency(n: number ){
+        this.backgroundGameObject.setAlpha(n)
+    }
+
 
 }

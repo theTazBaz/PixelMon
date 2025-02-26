@@ -2,10 +2,12 @@ import Phaser from "phaser";
 import { DIRECTION, Direction } from "./direction";
 import { CURSORS } from "./asset_keys";
 import { BattlePokemon } from "./battle-pokemon";
+// import { Pokemon } from "./typedef";
 
 const Style = {
     fontSize: "20px",
     color: "#fff",
+    
 }
 
 
@@ -38,6 +40,8 @@ const MOVES_LIST = Object.freeze({
 type MoveList = keyof typeof MOVES_LIST;
 
 
+
+
 export class BattleMenu{
     private scene : Phaser.Scene;
     private PlayerOptions!: Phaser.GameObjects.Container ;
@@ -54,10 +58,11 @@ export class BattleMenu{
     private activeBattleMenu: ActiveBattleMenu;
     private selectedMove: MoveList;
     private PokemonAttackList! : Phaser.GameObjects.Container;
-    private activePlayerPokemon!: BattlePokemon;
+    private activePlayerPokemon!: BattlePokemon
     private userInputCursor!: Phaser.GameObjects.Image;
     private unserInputCursorTween !: Phaser.Tweens.Tween;
-    // private switchPokemon!: boolean;
+    private switchPokemon!: boolean;
+    private runattempt!:boolean;
 
 
 
@@ -77,7 +82,8 @@ export class BattleMenu{
         this.activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_MAIN;
         this.selectedMove = MOVES_LIST.MOVE_1;
         this.createPlayerInputCursor();
-        // this.switchPokemon=false;
+        this.switchPokemon=false;
+        this.runattempt=false
 
     }
 
@@ -85,12 +91,39 @@ export class BattleMenu{
     get selectedAttack(){
         if(this.activeBattleMenu ===ACTIVE_BATTLE_MENU.BATTLE_MOVE_SELECT)
             return this.SelectedAttackIndex;
-        return undefined;
+        return  ;
     }
     get BattleMenuOption(){
         return this.selectedBattleMenuOption;
     }
 
+    get isAttemptingToSwitchPokemon (){
+        return this.switchPokemon;
+
+    }
+    get isAttemptingToRun (){
+        return this.runattempt;
+
+    }
+
+    updatePokemonAttackSubMenu(){
+        const attackNames :string[] = [];
+        for (let i = 0 ; i<4; i+=1){
+            attackNames.push(this.activePlayerPokemon.attacks[i]?.name|| "-");
+        }
+
+
+
+        const texts = this.PokemonAttackList.list.filter(obj => obj instanceof Phaser.GameObjects.Text) as Phaser.GameObjects.Text[];
+    
+        if (texts.length >= 4) {
+            texts[0].setText(attackNames[0]);
+            texts[1].setText(attackNames[1]);
+            texts[2].setText(attackNames[2]);
+            texts[3].setText(attackNames[3]);
+        }
+
+    }
     //To show the initial Info Pane about pokemon appearing and player options 
     showMainBattleMenu(){
         this.activeBattleMenu =ACTIVE_BATTLE_MENU.BATTLE_MAIN;
@@ -102,7 +135,9 @@ export class BattleMenu{
         //this is the pokemon attacks Menu 
         this.HidePokemonAttackMenu();
         this.PlayerOptions.setAlpha(1);
-        // this.switchPokemon=false;
+        this.switchPokemon=false;
+        this.runattempt=false
+
     }
 
     //To hide the main Info Pane
@@ -113,7 +148,6 @@ export class BattleMenu{
     
 
     // this is Pokemon Attcks Part 
-
     ShowPokemonAttackMenu(){
         this.activeBattleMenu =ACTIVE_BATTLE_MENU.BATTLE_MOVE_SELECT;
         this.PokemonAttackList.setAlpha(1);
@@ -141,6 +175,12 @@ export class BattleMenu{
         this.unserInputCursorTween.pause();
     }
 
+    
+
+
+
+
+
 
     playerInput(input: 'OK' | 'CANCEL' |Direction  ){
 
@@ -151,20 +191,16 @@ export class BattleMenu{
 
         if (input === 'CANCEL'){
             this.SwitchToMainBattleMenu();
-            
             return ; }
 
         if(input ==='OK'){  
             
             if(this.activeBattleMenu=== ACTIVE_BATTLE_MENU.BATTLE_MAIN){
-
                 this.chooseMainBattleOption();                
-                return;
+                return
             }
             
             if(this.activeBattleMenu=== ACTIVE_BATTLE_MENU.BATTLE_MOVE_SELECT){
-                
-
                 this.ChosenAttack();
                 return
             }
@@ -184,8 +220,10 @@ export class BattleMenu{
         this.textLine1.setText(message);
         
         this.WaitForPlayerInput=false;
-        if(callback){  
+        if(callback){
+            
             callback();
+            
         }
 
     }
@@ -206,6 +244,7 @@ export class BattleMenu{
 
         if(this.InfoPanelMessages.length===0){
             if(this.InfoPanelCallBack){
+                
                 const callback = this.InfoPanelCallBack;
                 this.InfoPanelCallBack = undefined
                 callback();
@@ -431,7 +470,6 @@ export class BattleMenu{
 
 
     private SwitchToMainBattleMenu(){
-
         this.WaitForPlayerInput=false;
         this.hideInputCursor();
         this.HidePokemonAttackMenu();
@@ -457,27 +495,21 @@ export class BattleMenu{
         if(this.selectedBattleMenuOption === BATTLE_MENU_OPTIONS.RUN){
             console.log(this.selectedBattleMenuOption)
             this.activeBattleMenu = ACTIVE_BATTLE_MENU.RUN
-            
-            this.updateInfoPaneMsgsWaitForPlayerInput(["Running Away ... "], ()=>{
-                console.log("run")
-                this.SwitchToMainBattleMenu();
-            })
-            
+            this.runattempt=true;
             return;
         }
         if(this.selectedBattleMenuOption === BATTLE_MENU_OPTIONS.SWITCH){
             console.log(this.selectedBattleMenuOption)
             this.activeBattleMenu = ACTIVE_BATTLE_MENU.SWITCH
-            this.updateInfoPaneMsgsWaitForPlayerInput(["No Other Pokemon.."], ()=>{
-                this.SwitchToMainBattleMenu();
-            })
+            this.switchPokemon=true;
+            
             return;
         }
     }
 
 }
     private ChosenAttack(){
-        console.log("reaches chosen attack ")
+        
         this.activeBattleMenu=ACTIVE_BATTLE_MENU.BATTLE_MOVE_SELECT;
         console.log(this.activeBattleMenu);
         let SelectedAttackIndex =0 ;
@@ -516,6 +548,9 @@ export class BattleMenu{
         }
 
     }
+
+
+
     private createPlayerInputCursor(){
         this.userInputCursor=this.scene.add.image(0,0, CURSORS.CURSOR );
         this.userInputCursor.setAngle(90).setScale(3.5,2);
@@ -534,4 +569,12 @@ export class BattleMenu{
         });
         this.unserInputCursorTween.pause();
     }
+
+    updatePlayerPokemon(newPokemon: BattlePokemon) {
+        // Update the player's Pokémon reference
+        this.activePlayerPokemon = newPokemon;       
+    return;
+    }
+    
+
 }

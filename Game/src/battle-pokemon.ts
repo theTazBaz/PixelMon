@@ -7,13 +7,13 @@ export class BattlePokemon {
     protected _scene: Phaser.Scene;
     protected _pokemonDetails: Pokemon;
     protected _phaserGameObject: Phaser.GameObjects.Sprite;
-    public _healthBar!: HealthBar;
+    protected _healthBar!: HealthBar;
     protected pokemonAttacks: Attack[];
     protected currentHealth: number;
     protected maxHealth: number;
     protected _phaserHealthBarGameContainer!: Phaser.GameObjects.Container;
-
-    protected _healthBarText!: Phaser.GameObjects.Text;
+    protected _pokemonNameText !:Phaser.GameObjects.Text;
+    protected data: any;
 
 
     constructor(config: BattlePokemonConfig, position: Coordinate ) {
@@ -35,13 +35,14 @@ export class BattlePokemon {
     this.createHealthBarComponents();
     this._phaserGameObject = this._scene.add.sprite(position.x /*700*/, position.y/*200*/, this._pokemonDetails.name);
     this._phaserGameObject.setScale(3);
+
     this._phaserGameObject.play(animationKey);
 
-    const data = this._scene.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
+    this.data = this._scene.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
 
 
     this._pokemonDetails.attackIds.forEach((attackId) => {
-        const pokemonAttack = data.find((attack:{id:number}) => attack.id === attackId);
+        const pokemonAttack = this.data.find((attack:{id:number}) => attack.id === attackId);
         if (pokemonAttack !== undefined) {
             this.pokemonAttacks.push(pokemonAttack);
         }
@@ -67,94 +68,133 @@ export class BattlePokemon {
     return this._pokemonDetails.baseAttack;
     }
 
-    takeDamage(damage: number, callback?: () => void) {
-        this.currentHealth -= damage;
-        if (this.currentHealth < 0) {
-            this.currentHealth = 0;
-        }
-        this._healthBar.setMeterPercentageAnimated(this.currentHealth / this.maxHealth, {
-            callback: callback
-        });
     
-        // Update the health bar text
-        this.setHealthBarText();
-    }
-    
-  
-    setHealthBarText() {
-     if (this._healthBarText) {
-         this._healthBarText.setText(`${this.currentHealth}/${this.maxHealth}`);
-     }
-  }
 
- 
+    takeDamage(damage: number, callback?: () => void) {
+    this.currentHealth -= damage;
+    if (this.currentHealth < 0) {
+        this.currentHealth = 0;
+    }
+    this._healthBar.setMeterPercentageAnimated(this.currentHealth / this.maxHealth, {
+        callback: callback
+    });
+}
+
 createHealthBarComponents() {
-    this._healthBar = new HealthBar(this._scene, 34 * 0.75, 34 * 0.75);
- 
-    const PokemonName = this._scene.add.text(
-        30 * 0.75,
-        20 * 0.75,
+    this._healthBar = new HealthBar(this._scene,34*0.75,34*0.75); 
+
+    this._pokemonNameText = this._scene.add.text(
+        30*0.75,
+        20*0.75,
         this.name,
         {
-            color: '#000000',
+            color:'#000000' ,
             fontSize: '22px',
         }
     );
- 
     const pokemonLevelText = this._scene.add.text(
-        PokemonName.width + 40 * 0.75,
-        26 * 0.75,
-        "Lvl 1",
+        this._pokemonNameText.width+40*0.75,
+        26*0.75,
+        `Lvl ${this._pokemonDetails.currentLevel}`,
         {
-            color: '#000000',
+            color:'#000000' ,
             fontSize: '16px',
         }
     );
- 
     const pokemonHPText = this._scene.add.text(
-        30 * 0.75,
-        55 * 0.75,
+        30*0.75,
+        55*0.75,
         "HP",
         {
-            color: '#000000',
+            color:'#000000' ,
             fontSize: '16px',
-            fontStyle: 'italic',
+            fontStyle:'italic',
         }
     );
-const healthbarBackground = this._scene.add.image(0, 0, "healthbar_background");
-healthbarBackground.setScale(0.75); // Adjust size of health bar background
-healthbarBackground.setOrigin(0, 0);
+    const healthbarBackground = this._scene.add.image(0, 0, "healthbar_background");
+    healthbarBackground.setScale(0.75); // Adjust size of health bar background
+    healthbarBackground.setOrigin(0, 0);
 
-this._healthBarText = this._scene.add.text(
-    443 * 0.75,
-    90 * 0.75,
-    `${this.currentHealth}/${this.maxHealth}`,
-    {
-        color: '#000000',
-        fontSize: '12px',
+    this._phaserHealthBarGameContainer = this._scene.add.container(50, 25, [
+            healthbarBackground,
+            this._pokemonNameText,
+            pokemonLevelText,
+            pokemonHPText,
+            this._healthBar.container,
+            this._scene.add.text(
+                443*0.75,
+                90*0.75,
+                "25/25",
+                {
+                    color:'#000000' ,
+                    fontSize: '12px',
+                    
+                }
+            ).setOrigin(1,0),
+    ]);
+
+
     }
-).setOrigin(1, 0);
 
-this._phaserHealthBarGameContainer = this._scene.add.container(50, 25, [
-        healthbarBackground,
-        PokemonName,
-        pokemonLevelText,
-        pokemonHPText,
-        this._healthBar.container,
-        this._healthBarText,
-]);
+    hidePokemon(){
+        this._phaserGameObject.setAlpha(0);
+        this._phaserHealthBarGameContainer.setAlpha(0);
+
+
+    }
+    showPokemon(){
+        this._phaserGameObject.setAlpha(1);
+        this._phaserHealthBarGameContainer.setAlpha(1);
+
+
+    }
+
+    switchPokemon(pokemon:Pokemon){
+        this._pokemonDetails = pokemon;
+        this.currentHealth = this._pokemonDetails.currentHp;
+        this.maxHealth= this._pokemonDetails.maxHp;
+        this._healthBar.setMeterPercentageAnimated(this.currentHealth/this.maxHealth,{
+            skipBattleAnimations: true
+        });
+        
+        this.pokemonAttacks=[];
+        this._pokemonDetails.attackIds.forEach((attackId) => {
+            const pokemonAttack = this.data.find((attack:{id:number}) => attack.id === attackId);
+            if (pokemonAttack !== undefined) {
+                this.pokemonAttacks.push(pokemonAttack);
+            }
+        });
+
+        this._phaserGameObject.setTexture(this._pokemonDetails.assetKey, this._pokemonDetails.assetFrame ||0);
+        this._pokemonNameText.setText(this._pokemonDetails.name);
+        
+
+
+    }
+
+    playSwitchAnimation(newPokemon: Pokemon, callback?: () => void) {
+        // Fade out the current Pokémon
+        this._scene.tweens.add({
+            targets: this._phaserGameObject,
+            alpha: 0,
+            duration: 500,
+            onComplete: () => {
+                // Switch to the new Pokémon
+                this.switchPokemon(newPokemon);
+    
+                // Fade in the new Pokémon
+                this._scene.tweens.add({
+                    targets: this._phaserGameObject,
+                    alpha: 1,
+                    duration: 500,
+                    onComplete: () => {
+                        if (callback) callback();
+                    }
+                });
+            }
+        });
+    }
+    
 
 
 }
-hidePokemon(){
-    this._phaserGameObject.setAlpha(0);
-
-
-}
-showPokemon(){
-    this._phaserGameObject.setAlpha(1);
-
-
-}
-}
-

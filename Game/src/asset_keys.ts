@@ -1,26 +1,27 @@
 export const POKEMON = Object.freeze({
-    BULBASAUR: 'bulbasaur',
-    CHARMANDER: 'charmander',
-    CHIKORITA: 'chikorita',
-    CUBONE: 'cubone',
-    ELECTRIKE: 'electrike',
-    GEODUDE: 'geodude',
-    GROWLITHE: 'growlithe',
-    // MAGIKARP: 'magikarp',
-    // MAGMAR: 'magmar',
-    MAGNEMITE: 'magnemite',
-    MEOWTH: 'meowth',
-    ODDISH: 'oddish',
-    PIDGEY: 'pidgey',
-    PIKACHU: 'pikachu',
-    PSYDUCK: 'psyduck',
-    RATTATA: 'rattata',
-    SANDSHREW: 'sandshrew',
-    SQUIRTLE: 'squirtle',
-    // TROPIUS: 'tropius',
-    VULPIX: 'vulpix'
-  }
-  );
+    BULBASAUR: 'bulbasaur' as string,
+    CHARMANDER: 'charmander' as string,
+    CHIKORITA: 'chikorita' as string,
+    CUBONE: 'cubone' as string,
+    ELECTRIKE: 'electrike' as string,
+    GEODUDE: 'geodude' as string,
+    GROWLITHE: 'growlithe' as string,
+    // MAGIKARP: 'magikarp' as string,
+    // MAGMAR: 'magmar' as string,
+    MAGNEMITE: 'magnemite' as string,
+    MEOWTH: 'meowth' as string,
+    ODDISH: 'oddish' as string,
+    PIDGEY: "pidgey" as string,
+    PIKACHU: 'pikachu' as string,
+    PSYDUCK: 'psyduck' as string,
+    RATTATA: 'rattata' as string,
+    SANDSHREW: 'sandshrew' as string,
+    SQUIRTLE: 'squirtle' as string,
+    // TROPIUS: 'tropius' as string,
+    VULPIX: 'vulpix' as string
+});
+
+
 
 
 export const HEALTH_BAR_ASSETS = Object.freeze({
@@ -37,4 +38,8 @@ export const DATA_ASSET_KEYS = Object.freeze({
     ATTACKS : 'ATTACKS'
 
 
+})
+
+export const BATTLE_ASSET_KEYS = Object.freeze({
+    POKEBALL: 'POKEBALL'
 })

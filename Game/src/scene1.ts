@@ -1,5 +1,7 @@
 import Phaser from "phaser";
-import "./style.css"
+import "./style.css";
+import { PLAYER_POKEMON_TEAM } from "./player-pokemon-list";
+
 
 export default class scene1 extends Phaser.Scene
 {
@@ -8,7 +10,12 @@ export default class scene1 extends Phaser.Scene
     }
     preload()
     {
-        
+        PLAYER_POKEMON_TEAM.forEach((pokemon) => {
+            this.load.atlas(`${pokemon.name}_front`, `src/assets/pokemon/${pokemon.name}_front.png`,`src/assets/pokemon_json/${pokemon.name}_front.json`);
+        });
+        PLAYER_POKEMON_TEAM.forEach((pokemon) => {
+            this.load.atlas(`${pokemon.name}_back`, `src/assets/pokemon/${pokemon.name}_back.png`,`src/assets/pokemon_json/${pokemon.name}_back.json`);
+        });
         this.load.image("startscreen","src/assets/images/startscreen.jpg");
     }
     create() {
@@ -29,6 +36,8 @@ export default class scene1 extends Phaser.Scene
             console.error("Keyboard plugin or 'Enter' key mapping is not available.");
             return;
         }
+        // this.scene.start("scene2");
+
 
         // Start the next scene when the "Enter" key is pressed
         enterKey.on("down", () => {

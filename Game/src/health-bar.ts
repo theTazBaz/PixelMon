@@ -1,7 +1,7 @@
 import Phaser, { Scene } from "phaser";
 import { HEALTH_BAR_ASSETS } from "./asset_keys"; 
 
-export class HealthBar {
+export class HealthBar  {
     private scene: Scene;
     private healthBarContainer: Phaser.GameObjects.Container;
     private fullWidth: number; 
@@ -13,9 +13,9 @@ export class HealthBar {
     private middleShadow!: Phaser.GameObjects.Image;
     private rightCapShadow!: Phaser.GameObjects.Image;
     
-    constructor(scene: Scene, x: number, y: number) {
+    constructor(scene: Scene, x: number, y: number , width: number = 360 * 0.75 ) {
         this.scene = scene;
-        this.fullWidth = 360 * 0.75; // Scaled width of the health bar
+        this.fullWidth = width; // Scaled width of the health bar
         this.scaleY = 0.65; // Vertical scaling factor
 
         // Create a container for the health bar parts
@@ -36,6 +36,7 @@ export class HealthBar {
 
     
     private createHealthBarImages(x: number, y: number): void {
+        
         this.leftCap = this.scene.add
             .image(x, y, HEALTH_BAR_ASSETS.LEFT_CAP)
             .setOrigin(0, 0.5)
@@ -110,10 +111,17 @@ export class HealthBar {
     
     setMeterPercentageAnimated(
         percent: number,
-        options: { duration?: number; callback?: () => void } = {}
+        options: { duration?: number; skipBattleAnimations?:boolean  , callback?: () => void } = {}
     ): void {
         const width = this.fullWidth * percent;
     
+        if (options?.skipBattleAnimations) {
+            this.setMeterPercentage(percent);
+            if (options?.callback) {
+            options.callback();
+            }
+            return;
+        }
         this.scene.tweens.add({
             targets: this.middle,
             displayWidth: width,
@@ -131,6 +139,11 @@ export class HealthBar {
                 if (options.callback) options.callback();
             },
         });
+    }
+
+    hideHealthBar(){
+
+        this.healthBarContainer.setAlpha(0);
     }
     
     

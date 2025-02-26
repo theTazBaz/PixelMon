@@ -13,9 +13,5 @@ export class playerPokemon extends BattlePokemon{
         this._phaserHealthBarGameContainer.setPosition(550,275);
     }
 
-    addHealthBarComponents() {
-        
-    }
-
-
+    
 }
