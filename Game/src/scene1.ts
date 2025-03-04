@@ -36,7 +36,7 @@ export default class scene1 extends Phaser.Scene
             console.error("Keyboard plugin or 'Enter' key mapping is not available.");
             return;
         }
-        // this.scene.start("scene2");
+        this.scene.start("scene2");
 
 
         // Start the next scene when the "Enter" key is pressed

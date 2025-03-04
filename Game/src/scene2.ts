@@ -9,6 +9,7 @@ import { enemyPokemon } from "./enemy-pokemon";
 import { playerPokemon } from "./player-pokemon";
 import { PLAYER_POKEMON_TEAM } from "./player-pokemon-list";
 import { Pokemon } from "./typedef";
+import { POKEMON_DATA } from "./pokemon-data";
 
 
 const BATTLE_STATES = Object.freeze({
@@ -39,6 +40,7 @@ export default class scene2 extends Phaser.Scene {
     randomIndex = Math.floor(Math.random() * this.keys.length); 
     OPPONENT = this.keys[this.randomIndex];
     PLAYER = PLAYER_POKEMON_TEAM[0];
+
 
     constructor() {
         super("scene2");
@@ -78,40 +80,41 @@ export default class scene2 extends Phaser.Scene {
         
 
         // Loading pokemons 
-
+        console.log(this.PLAYER)
         this.activePlayerPokemon = new playerPokemon({
             scene: this,
             _pokemonDetails: {
-                PokemonId:10,
+                PokemonId:this.PLAYER.PokemonId,
                 name: this.PLAYER.name,
-                assetKey: this.PLAYER.name,
-                assetFrame: 0 ,
-                currentHp: 25,
-                maxHp: 25,
-                attackIds: [1,2,3,4],
-                baseAttack: 5,
-                currentLevel: 4
+                assetKey: this.PLAYER.assetKey,
+                currentHp: this.PLAYER.currentHp,
+                maxHp: this.PLAYER.maxHp,
+                attackIds: this.PLAYER.attackIds,
+                baseAttack: this.PLAYER.baseAttack,
+                type: this.PLAYER.type,
+                assetFrame: this.PLAYER.assetFrame,
+                currentLevel: this.PLAYER.currentLevel
             },
         });
 
         this.activePlayerPokemon.hidePokemon();
 
+        const opponentData = POKEMON_DATA[this.OPPONENT as keyof typeof POKEMON_DATA];
         this.activeOpponentPokemon = new enemyPokemon({
-            scene:this,
+            scene: this,
             _pokemonDetails: {
-                PokemonId: 1,
+                PokemonId:opponentData.PokemonId,
                 name: this.OPPONENT,
                 assetKey: this.OPPONENT,
-                assetFrame:0,
-                currentHp:25,
-                maxHp:25,
-                attackIds:[1,5],
-                baseAttack: 5,
-                currentLevel:5
+                assetFrame:opponentData.assetFrame,
+                currentHp: opponentData.maxHp,
+                maxHp: opponentData.maxHp,
+                attackIds: opponentData.attackIds,
+                baseAttack: opponentData.baseAttack,
+                type: opponentData.type,
+                currentLevel:opponentData.currentLevel
             }
-
-        });
-        
+        }); 
         //battle Machine starts here 
         this.createBattleStateMachine();
         this.battlemenu= new BattleMenu(this , this.activePlayerPokemon);
@@ -367,17 +370,27 @@ export default class scene2 extends Phaser.Scene {
 
 
 
-    private playerAttack(){
+    private playerAttack() {
+        const selectedAttack = this.activePlayerPokemon.attacks[this.activePlayerAttackIndex];
         
-        this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(`${this.activePlayerPokemon.name} used ${this.activePlayerPokemon.attacks[this.activePlayerAttackIndex].name}` , ()=>{
-            this.time.delayedCall(1200,()=>
-            {
-                this.activeOpponentPokemon.takeDamage(this.activePlayerPokemon.baseAttack,()=>{
-                    this.enemyAttack();
-                })
-            })
-        })
-
+        this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
+            `${this.activePlayerPokemon.name} used ${selectedAttack.name}`,
+            () => {
+                this.time.delayedCall(1200, () => {
+                    // Get the attack type from the attacks data
+                    const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
+                    const attackType = attackData.find((attack: any) => attack.id === selectedAttack.id)?.type || "NORMAL";
+                    
+                    this.activeOpponentPokemon.takeDamage(
+                        this.activePlayerPokemon.baseAttack,
+                        attackType,
+                        () => {
+                            this.enemyAttack();
+                        }
+                    );
+                });
+            }
+        );
     }
 
     private enemyAttack(onComplete?: () => void){
@@ -392,21 +405,24 @@ export default class scene2 extends Phaser.Scene {
             return;
         }
 
-        console.log("in ")
-        console.log("player pokemon",this.activePlayerPokemon.name);
-        this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(`${this.activeOpponentPokemon.name} used ${this.activeOpponentPokemon.attacks[1].name}`, ()=>{
-            this.time.delayedCall(500,()=>
-            {   console.log("damage")
-                console.log("in enemy", this.battlemenu.isAttemptingToSwitchPokemon)
-            
-                this.activePlayerPokemon.takeDamage(this.activeOpponentPokemon.baseAttack,()=>{
-                this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
-                if (onComplete) onComplete();
-
-                
-                })
-            })
-        })
+        const enemyAttack = this.activeOpponentPokemon.attacks[1];
+        const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
+        const attackType = attackData.find((attack: any) => attack.id === enemyAttack.id)?.type || "NORMAL";
+    
+        this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
+            `${this.activeOpponentPokemon.name} used ${enemyAttack.name}`,
+            () => {
+                this.time.delayedCall(500, () => {
+                    this.activePlayerPokemon.takeDamage(
+                        this.activeOpponentPokemon.baseAttack,
+                        attackType,
+                        () => {
+                            this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+                        }
+                    );
+                });
+            }
+        );
 
     }
 

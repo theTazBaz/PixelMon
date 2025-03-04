@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { HealthBar } from "./health-bar";
 import {Pokemon , BattlePokemonConfig , Coordinate ,Attack} from "./typedef"
 import { DATA_ASSET_KEYS } from "./asset_keys";
-
+import { TYPE_EFFECTIVENESS } from "./type-effectiveness";
 export class BattlePokemon {
     protected _scene: Phaser.Scene;
     protected _pokemonDetails: Pokemon;
@@ -14,6 +14,9 @@ export class BattlePokemon {
     protected _phaserHealthBarGameContainer!: Phaser.GameObjects.Container;
     protected _pokemonNameText !:Phaser.GameObjects.Text;
     protected data: any;
+    public type: string;
+    protected _healthBarText!: Phaser.GameObjects.Text;
+
 
 
     constructor(config: BattlePokemonConfig, position: Coordinate ) {
@@ -22,6 +25,7 @@ export class BattlePokemon {
         this.currentHealth = this._pokemonDetails.currentHp;
         this.maxHealth=this._pokemonDetails.maxHp;
         this.pokemonAttacks = [];
+        this.type = this._pokemonDetails.type; 
 
         const animationKey = `${this._pokemonDetails.name}_animation`;
         if (!this._scene.anims.exists(animationKey)) {
@@ -70,15 +74,51 @@ export class BattlePokemon {
 
     
 
-    takeDamage(damage: number, callback?: () => void) {
-    this.currentHealth -= damage;
-    if (this.currentHealth < 0) {
-        this.currentHealth = 0;
+    takeDamage(damage: number, attackType: string, callback?: () => void) {
+        // Calculate type effectiveness multiplier
+        const effectiveness = this.calculateTypeEffectiveness(attackType);
+        const finalDamage = Math.floor(damage * effectiveness);
+    
+        this.currentHealth -= finalDamage;
+    
+        if (this.currentHealth < 0) {
+            this.currentHealth = 0;
+        }
+    
+        this._healthBar.setMeterPercentageAnimated(this.currentHealth / this.maxHealth, {
+            callback: callback
+        });
+    
+        // Update the health bar text
+        this.setHealthBarText();
     }
-    this._healthBar.setMeterPercentageAnimated(this.currentHealth / this.maxHealth, {
-        callback: callback
-    });
-}
+    
+    private calculateTypeEffectiveness(attackType: string): number {
+        // Get the effectiveness table for the attacking type
+        const attackTypeTable = TYPE_EFFECTIVENESS[attackType as keyof typeof TYPE_EFFECTIVENESS];
+        
+        console.log('Attack Type:', attackType);
+        console.log('Defending Type:', this.type);
+        console.log('Attack Type Table:', attackTypeTable);
+        
+        if (!attackTypeTable) {
+            console.log('No effectiveness table found for attack type, returning 1');
+            return 1; // If attacking type isn't in the table, return neutral damage
+        }
+
+        // Look up the effectiveness against the defending type
+        const effectiveness = attackTypeTable[this.type as keyof typeof TYPE_EFFECTIVENESS[keyof typeof TYPE_EFFECTIVENESS]];
+        console.log('Calculated Effectiveness:', effectiveness);
+        
+        return effectiveness ?? 1; // Return 1 if no specific effectiveness is defined
+    }
+
+    setHealthBarText() {
+        if (this._healthBarText) {
+            this._healthBarText.setText(`${this.currentHealth}/${this.maxHealth}`);
+        }
+    }
+
 
 createHealthBarComponents() {
     this._healthBar = new HealthBar(this._scene,34*0.75,34*0.75); 
@@ -92,6 +132,8 @@ createHealthBarComponents() {
             fontSize: '22px',
         }
     );
+    console.log(`${this._pokemonDetails}`)
+    console.log(`${this._pokemonDetails.currentLevel}`)
     const pokemonLevelText = this._scene.add.text(
         this._pokemonNameText.width+40*0.75,
         26*0.75,
@@ -114,6 +156,17 @@ createHealthBarComponents() {
     const healthbarBackground = this._scene.add.image(0, 0, "healthbar_background");
     healthbarBackground.setScale(0.75); // Adjust size of health bar background
     healthbarBackground.setOrigin(0, 0);
+    this._healthBarText = this._scene.add.text(
+        443 * 0.75,
+        90 * 0.75,
+        `${this.currentHealth}/${this.maxHealth}`,
+        {
+            color: '#000000',
+            fontSize: '15px',
+        }
+    ).setOrigin(1, 0);
+    
+    
 
     this._phaserHealthBarGameContainer = this._scene.add.container(50, 25, [
             healthbarBackground,
@@ -121,16 +174,8 @@ createHealthBarComponents() {
             pokemonLevelText,
             pokemonHPText,
             this._healthBar.container,
-            this._scene.add.text(
-                443*0.75,
-                90*0.75,
-                "25/25",
-                {
-                    color:'#000000' ,
-                    fontSize: '12px',
-                    
-                }
-            ).setOrigin(1,0),
+        
+            this._healthBarText
     ]);
 
 
