@@ -4,16 +4,17 @@ import "./style.css"
 import scene1 from './scene1';
 import scene2 from './scene2';
 import scene3 from './scene3';
+import scene4 from './scene4';
 
 const config = {
     type: Phaser.AUTO,
     scale: {
-      mode: Phaser.Scale.FIT,
+      // mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_HORIZONTALLY, // Center the game
     },
     width: 960,
     height: 540,
-    scene: [scene1,scene2,scene3],
+    scene: [scene1,scene2,scene3,scene4],
 
     backgroundColor: '#000000', 
 };

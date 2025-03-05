@@ -42,4 +42,18 @@ export const DATA_ASSET_KEYS = Object.freeze({
 
 export const BATTLE_ASSET_KEYS = Object.freeze({
     POKEBALL: 'POKEBALL'
+});
+
+export const WORLD_ASSET_KEYS = Object.freeze({
+    PALLET_TOWN : 'PALLET_TOWN',
+    PALLET_MAIN_LEVEL : 'PALLET_MAIN_LEVEL',
+    PALLET_COLLISION : 'PALLET_COLLISION',
+    PALLET_FOREGROUND : 'PALLET_FOREGROUND',
+    PALLET_ENCOUNTER_ZONE : 'PALLET_ENCOUNTER_ZONE'
+
+})
+
+export const CHARACTER_ASSET_KEYS = Object.freeze({
+    PLAYER : 'PLAYER'
+
 })

@@ -10,6 +10,7 @@ import { playerPokemon } from "./player-pokemon";
 import { PLAYER_POKEMON_TEAM } from "./player-pokemon-list";
 import { Pokemon } from "./typedef";
 import { POKEMON_DATA } from "./pokemon-data";
+import { Controls } from "./controls";
 
 
 const BATTLE_STATES = Object.freeze({
@@ -28,9 +29,9 @@ const BATTLE_STATES = Object.freeze({
 export default class scene2 extends Phaser.Scene {
 
     private battlemenu!: BattleMenu;
-    private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
+   private controls!:Controls
     private battleStateMachine!: StateMachine
-    private enterKey!: Phaser.Input.Keyboard.Key;
+    
     activeOpponentPokemon!:BattlePokemon;
     activePlayerPokemon!:BattlePokemon;
     private activePlayerAttackIndex!: number;
@@ -118,15 +119,13 @@ export default class scene2 extends Phaser.Scene {
         //battle Machine starts here 
         this.createBattleStateMachine();
         this.battlemenu= new BattleMenu(this , this.activePlayerPokemon);
-        this.cursorKeys = this.input.keyboard!.createCursorKeys();
-        this.enterKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
-    }
+        this.controls=new Controls(this);
+        }
 
     update(){
         this.battleStateMachine.update();
         
-        const wasEnterKeyPressed = Phaser.Input.Keyboard.JustDown(this.enterKey);
-
+        const wasEnterKeyPressed = this.controls.wasEnterKeyPressed();
         if(wasEnterKeyPressed && (
             this.battleStateMachine.currentStateName===BATTLE_STATES.PRE_BATTLE_INFO||
             this.battleStateMachine.currentStateName===BATTLE_STATES.POST_BATTLE_CHECK||
@@ -169,24 +168,12 @@ export default class scene2 extends Phaser.Scene {
             this.battleStateMachine.setState(BATTLE_STATES.ENEMY_INPUT);
         }
 
-        if(Phaser.Input.Keyboard.JustDown(this.cursorKeys.shift)){
+        if(this.controls.wasShiftKeyPressed()){
             this.battlemenu.playerInput('CANCEL');
             return ;
         }
         
-        let selectedDirection :Direction= DIRECTION.NONE;
-        if(this.cursorKeys.left.isDown){
-            selectedDirection=DIRECTION.LEFT
-        }else if(this.cursorKeys.right.isDown){
-            selectedDirection=DIRECTION.RIGHT
-        }
-        else if(this.cursorKeys.up.isDown){
-            selectedDirection=DIRECTION.UP
-        }
-        else if(this.cursorKeys.down.isDown){
-            selectedDirection=DIRECTION.DOWN
-        }
-
+        const selectedDirection = this.controls.getDirectionKeyJustPressed();
         if(selectedDirection !==DIRECTION.NONE){
             this.battlemenu.playerInput(selectedDirection);
         }
@@ -447,7 +434,7 @@ export default class scene2 extends Phaser.Scene {
     private transitionNextScene(){
         this.cameras.main.fadeOut(2600,0 ,0 ,0) ;
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{
-            this.scene.start("scene2");
+            this.scene.start("scene4");
         })
     }
 

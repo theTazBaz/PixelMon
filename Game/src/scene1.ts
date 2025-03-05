@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import "./style.css";
 import { PLAYER_POKEMON_TEAM } from "./player-pokemon-list";
+import { CHARACTER_ASSET_KEYS, WORLD_ASSET_KEYS } from "./asset_keys";
 
 
 export default class scene1 extends Phaser.Scene
@@ -17,6 +18,16 @@ export default class scene1 extends Phaser.Scene
             this.load.atlas(`${pokemon.name}_back`, `src/assets/pokemon/${pokemon.name}_back.png`,`src/assets/pokemon_json/${pokemon.name}_back.json`);
         });
         this.load.image("startscreen","src/assets/images/startscreen.jpg");
+        //pallet town data 
+        this.load.image(WORLD_ASSET_KEYS.PALLET_TOWN, "src/assets/cities/level_background.png")
+        this.load.tilemapTiledJSON(WORLD_ASSET_KEYS.PALLET_MAIN_LEVEL, "src/assets/cities/level.json")
+        this.load.image(WORLD_ASSET_KEYS.PALLET_COLLISION, "src/assets/cities/collision.png")
+        this.load.image(WORLD_ASSET_KEYS.PALLET_FOREGROUND, "src/assets/cities/foreground.png")
+        this.load.image(WORLD_ASSET_KEYS.PALLET_ENCOUNTER_ZONE, "src/assets/cities/encounter.png")
+        
+        //loading character assets
+        this.load.atlas(CHARACTER_ASSET_KEYS.PLAYER,"src/assets/player/male_sprite.png", "src/assets/player/male_sprite.json");
+    
     }
     create() {
         this.add.image(480, 270, "startscreen"); // Add the image
@@ -27,6 +38,7 @@ export default class scene1 extends Phaser.Scene
             stroke: "#000000", // Black outline
             strokeThickness: 6,
         }).setOrigin(0.5); // Center the text
+        
 
         // Add input listener for the "Enter" key
         const enterKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
@@ -36,16 +48,48 @@ export default class scene1 extends Phaser.Scene
             console.error("Keyboard plugin or 'Enter' key mapping is not available.");
             return;
         }
-        this.scene.start("scene2");
+        this.createAnimations();
+        // this.scene.start("scene4");
 
 
         // Start the next scene when the "Enter" key is pressed
         enterKey.on("down", () => {
             if (this.scene) {
-                this.scene.start("scene2");
+                this.scene.start("scene4");
             } else {
                 console.error("Scene Manager is not available.");
             }
+        });
+    }
+
+    createAnimations(){
+        this.anims.create({
+            key: "PLAYER_DOWN",
+            frames:this.anims.generateFrameNames(CHARACTER_ASSET_KEYS.PLAYER,{start:1, end:2, prefix:'walking_down000'}),
+            repeat: -1,
+            frameRate:15 
+
+        });
+        this.anims.create({
+            key: "PLAYER_UP",
+            frames:this.anims.generateFrameNames(CHARACTER_ASSET_KEYS.PLAYER,{start:1, end:5, prefix:'walking_up000'}),
+            repeat: -1,
+            frameRate:15 
+
+        });
+        this.anims.create({
+            key: "PLAYER_LEFT",
+            frames:this.anims.generateFrameNames(CHARACTER_ASSET_KEYS.PLAYER,{start:1, end:6, prefix:'walking_left000'}),
+            repeat: -1,
+            frameRate:15 
+
+        });
+        this.anims.create({
+            key: "PLAYER_RIGHT",
+            frames:this.anims.generateFrameNames(CHARACTER_ASSET_KEYS.PLAYER,{start:1, end:5, prefix:'walking_right000'}),
+            repeat: -1,
+            frameRate:15 
+
         });
     }
     
