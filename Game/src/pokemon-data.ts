@@ -6,7 +6,7 @@ export const POKEMON_DATA = {
         type: "GROUND",
         baseAttack: 15,
         maxHp: 50,
-        attackIds: [1, 5],
+        attackIds: [5, 7, 14, 11],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -16,7 +16,7 @@ export const POKEMON_DATA = {
         type: "GROUND",
         baseAttack: 13,
         maxHp: 35,
-        attackIds: [1, 5],
+        attackIds: [7, 14, 5, 3],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -26,7 +26,7 @@ export const POKEMON_DATA = {
         type: "ROCK",
         baseAttack: 16,
         maxHp: 40,
-        attackIds: [1, 5],
+        attackIds: [10, 17, 5, 1],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -36,7 +36,7 @@ export const POKEMON_DATA = {
         type: "GROUND",
         baseAttack: 14,
         maxHp: 50,
-        attackIds: [1, 5],
+        attackIds: [5, 7, 14, 3],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -48,7 +48,7 @@ export const POKEMON_DATA = {
         type: "WATER",
         baseAttack: 10,
         maxHp: 35,
-        attackIds: [1, 5],
+        attackIds: [5, 8, 15, 3],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -58,7 +58,7 @@ export const POKEMON_DATA = {
         type: "WATER",
         baseAttack: 13,
         maxHp: 44,
-        attackIds: [1, 5],
+        attackIds: [8, 15, 5, 11],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -68,7 +68,7 @@ export const POKEMON_DATA = {
         type: "WATER",
         baseAttack: 13,
         maxHp: 50,
-        attackIds: [1, 5],
+        attackIds: [8, 15, 5, 1],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -78,7 +78,7 @@ export const POKEMON_DATA = {
         type: "WATER",
         baseAttack: 12,
         maxHp: 40,
-        attackIds: [1, 5],
+        attackIds: [15, 8, 5, 3],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -90,7 +90,7 @@ export const POKEMON_DATA = {
         type: "FIRE",
         baseAttack: 14,
         maxHp: 39,
-        attackIds: [1, 5],
+        attackIds: [9, 16, 5, 11],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -100,7 +100,7 @@ export const POKEMON_DATA = {
         type: "FIRE",
         baseAttack: 13,
         maxHp: 38,
-        attackIds: [1, 5],
+        attackIds: [9, 16, 5, 1],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -110,7 +110,7 @@ export const POKEMON_DATA = {
         type: "FIRE",
         baseAttack: 15,
         maxHp: 55,
-        attackIds: [1, 5],
+        attackIds: [9, 16, 11, 1],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -120,7 +120,7 @@ export const POKEMON_DATA = {
         type: "FIRE",
         baseAttack: 16,
         maxHp: 45,
-        attackIds: [1, 5],
+        attackIds: [16, 9, 5, 11],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -132,7 +132,7 @@ export const POKEMON_DATA = {
         type: "GRASS",
         baseAttack: 12,
         maxHp: 45,
-        attackIds: [1, 5, 6],
+        attackIds: [6, 13, 5, 1],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -142,7 +142,7 @@ export const POKEMON_DATA = {
         type: "GRASS",
         baseAttack: 11,
         maxHp: 45,
-        attackIds: [1, 5, 6],
+        attackIds: [13, 6, 5, 3],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -152,7 +152,7 @@ export const POKEMON_DATA = {
         type: "GRASS",
         baseAttack: 14,
         maxHp: 55,
-        attackIds: [1, 5, 6],
+        attackIds: [6, 13, 11, 1],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -162,20 +162,19 @@ export const POKEMON_DATA = {
         type: "GRASS",
         baseAttack: 11,
         maxHp: 45,
-        attackIds: [1, 5, 6],
+        attackIds: [13, 6, 5, 3],
         assetFrame: 0,
         currentLevel: 5
     },
 
     // Electric Type Pokemon
     PIKACHU: {
-
         PokemonId:17,
         name: "pikachu",
         type: "ELECTRIC",
         baseAttack: 15,
         maxHp: 35,
-        attackIds: [1, 2, 3, 4],
+        attackIds: [2, 12, 11, 3],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -185,7 +184,7 @@ export const POKEMON_DATA = {
         type: "ELECTRIC",
         baseAttack: 12,
         maxHp: 25,
-        attackIds: [1, 2, 3],
+        attackIds: [2, 4, 12, 5],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -195,7 +194,7 @@ export const POKEMON_DATA = {
         type: "ELECTRIC",
         baseAttack: 13,
         maxHp: 40,
-        attackIds: [1, 2, 3],
+        attackIds: [2, 12, 11, 1],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -205,7 +204,7 @@ export const POKEMON_DATA = {
         type: "ELECTRIC",
         baseAttack: 14,
         maxHp: 38,
-        attackIds: [1, 2, 3],
+        attackIds: [2, 4, 5, 11],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -217,7 +216,7 @@ export const POKEMON_DATA = {
         type: "NORMAL",
         baseAttack: 12,
         maxHp: 30,
-        attackIds: [1, 5],
+        attackIds: [5, 11, 1, 3],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -227,7 +226,7 @@ export const POKEMON_DATA = {
         type: "NORMAL",
         baseAttack: 11,
         maxHp: 40,
-        attackIds: [1, 5],
+        attackIds: [11, 5, 1, 3],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -237,7 +236,7 @@ export const POKEMON_DATA = {
         type: "NORMAL",
         baseAttack: 12,
         maxHp: 40,
-        attackIds: [1, 5],
+        attackIds: [11, 5, 3, 1],
         assetFrame: 0,
         currentLevel: 5
     },
@@ -247,7 +246,7 @@ export const POKEMON_DATA = {
         type: "NORMAL",
         baseAttack: 11,
         maxHp: 35,
-        attackIds: [1, 5],
+        attackIds: [5, 11, 1, 3],
         assetFrame: 0,
         currentLevel: 5
     }
