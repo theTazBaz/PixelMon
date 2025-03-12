@@ -1,39 +1,104 @@
 [
     {
-        "id" : 1 , 
-        "name" : "Growl",
-        "animationName " : "GROWL"
+        "id": 1,
+        "name": "Growl",
+        "animationName": "GROWL",
+        "type": "NORMAL"
     },
     {
-        "id" : 2 , 
-        "name" : "Thunder Shock",
-        "animationName " : "THUNDER_SHOCK"
+        "id": 2,
+        "name": "Thunder Shock",
+        "animationName": "THUNDER_SHOCK",
+        "type": "ELECTRIC"
     },
     {
-        "id" : 3, 
-        "name" : "Tail Whip",
-        "animationName " : "TAIL_WHIP"
+        "id": 3,
+        "name": "Tail Whip",
+        "animationName": "TAIL_WHIP",
+        "type": "NORMAL"
     },
     {
-        "id" : 4, 
-        "name" : "Thuder Wave",
-        "animationName " : "THUNDER_WAVE"
-    },
-
-    {
-        "id" : 5, 
-        "name" : "Tackle",
-        "animationName " : "TACKLE"
-    },
-    
-    {
-        "id" : 6, 
-        "name" : "Vine Whip",
-        "animationName " : "VINE_WHIP"
+        "id": 4,
+        "name": "Thunder Wave",
+        "animationName": "THUNDER_WAVE",
+        "type": "ELECTRIC"
     },
     {
-        "id" : 7, 
-        "name" : "Sand Attack",
-        "animationName " : "SAND_ATTACK"
+        "id": 5,
+        "name": "Tackle",
+        "animationName": "TACKLE",
+        "type": "NORMAL"
+    },
+    {
+        "id": 6,
+        "name": "Vine Whip",
+        "animationName": "VINE_WHIP",
+        "type": "GRASS"
+    },
+    {
+        "id": 7,
+        "name": "Sand Attack",
+        "animationName": "SAND_ATTACK",
+        "type": "GROUND"
+    },
+    {
+        "id": 8,
+        "name": "Water Gun",
+        "animationName": "WATER_GUN",
+        "type": "WATER"
+    },
+    {
+        "id": 9,
+        "name": "Ember",
+        "animationName": "EMBER",
+        "type": "FIRE"
+    },
+    {
+        "id": 10,
+        "name": "Rock Throw",
+        "animationName": "ROCK_THROW",
+        "type": "ROCK"
+    },
+    {
+        "id": 11,
+        "name": "Quick Attack",
+        "animationName": "QUICK_ATTACK",
+        "type": "NORMAL"
+    },
+    {
+        "id": 12,
+        "name": "Thunderbolt",
+        "animationName": "THUNDERBOLT",
+        "type": "ELECTRIC"
+    },
+    {
+        "id": 13,
+        "name": "Razor Leaf",
+        "animationName": "RAZOR_LEAF",
+        "type": "GRASS"
+    },
+    {
+        "id": 14,
+        "name": "Mud Shot",
+        "animationName": "MUD_SHOT",
+        "type": "GROUND"
+    },
+    {
+        "id": 15,
+        "name": "Bubble",
+        "animationName": "BUBBLE",
+        "type": "WATER"
+    },
+    {
+        "id": 16,
+        "name": "Fire Spin",
+        "animationName": "FIRE_SPIN",
+        "type": "FIRE"
+    },
+    {
+        "id": 17,
+        "name": "Rock Slide",
+        "animationName": "ROCK_SLIDE",
+        "type": "ROCK"
     }
 ]
