@@ -77,7 +77,7 @@ export class Character{
                 break;
         }
         this.movesprite();
-       
+
     }
 
     update(time:DOMHighResTimeStamp){
@@ -115,7 +115,7 @@ export class Character{
 
         this.scene.add.tween({
             delay:0,
-            duration:600,
+            duration:100,
             y:this.targetPosition.y,
             x:this.targetPosition.x,
             targets:this.phaserGameObject,

@@ -1,9 +1,9 @@
 import { POKEMON } from "./asset_keys"
 
 export const PLAYER_POKEMON_TEAM = [
-  {
-      PokemonId: 1,
-      name: POKEMON.PIKACHU,
+    {
+    PokemonId: 1,
+    name: POKEMON.PIKACHU,
       type: "ELECTRIC",
       assetKey: POKEMON.PIKACHU,
       assetFrame: 0,

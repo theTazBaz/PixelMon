@@ -1,16 +1,19 @@
 import { CHARACTER_ASSET_KEYS } from "../asset_keys";
+import { DATA_MANAGER_KEYS, dataManager } from "../data_manager";
 import { DIRECTION, Direction } from "../direction";
 import { Character, CharacterConfig } from "./character";
 type PlayerConfig = Omit<CharacterConfig, "assetKey"|"assetFrame">;
 
 
 export class Player extends Character{
+    private pokemonTeam: any[];
     constructor(config:PlayerConfig){
         super({
             ...config,
             assetKey:CHARACTER_ASSET_KEYS.PLAYER,
             assetFrame:7,
         });
+        this.pokemonTeam = dataManager.storeData.get(DATA_MANAGER_KEYS.PLAYER_TEAM) || [];
         
     }
 
@@ -30,5 +33,13 @@ export class Player extends Character{
                 
 
             }
+        }
+        getPokemonTeam() {
+            return this.pokemonTeam;
+        }
+
+        updatePokemonTeam(updatedTeam: any[]) {
+            this.pokemonTeam = updatedTeam;
+            dataManager.storeData.set(DATA_MANAGER_KEYS.PLAYER_TEAM, updatedTeam);
         }
 }

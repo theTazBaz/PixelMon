@@ -5,6 +5,7 @@ import { PLAYER_POKEMON_TEAM } from "./player-pokemon-list";
 import {  HEALTH_BAR_ASSETS } from "./asset_keys";
 import { Direction, DIRECTION } from "./direction";
 import scene2 from "./assets/images/scene2";
+import { Player } from "./characters/player";
 
 const Style = {
     fontSize: "20px",
@@ -36,6 +37,8 @@ export default class scene3 extends Phaser.Scene{
     private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
     private enterKey!: Phaser.Input.Keyboard.Key;
     private battleScene !: scene2;
+    private player !:Player;
+    private pokemonTeam!:Pokemon[];
     constructor(){
         super("scene3");
     }
@@ -59,6 +62,11 @@ export default class scene3 extends Phaser.Scene{
     }
 
     create(data:any){
+        console.log(data.player);
+        if (data?.player) {
+            this.player = data.player; // Store reference to player
+            this.pokemonTeam = this.player.getPokemonTeam(); // Get Pokémon team
+        }
         this.battleScene= data.battle;
         this.cameras.main.setBackgroundColor('#000000'); 
 
@@ -78,7 +86,7 @@ export default class scene3 extends Phaser.Scene{
         infoContainer.add([infoDisplay, this.InfoText]);
         this.updateInfoContainerText();
 
-        PLAYER_POKEMON_TEAM.forEach((pokemon, index)=>{
+        this.pokemonTeam.forEach((pokemon, index)=>{
             const isEven = index%2 ==0 
             const x = isEven? POKEMON_POSITIONS.EVEN.x :POKEMON_POSITIONS.ODD.x;
             const y =(isEven? POKEMON_POSITIONS.EVEN.y: POKEMON_POSITIONS.ODD.y) + POKEMON_POSITIONS.increment* Math.floor(index/2);
@@ -105,9 +113,9 @@ export default class scene3 extends Phaser.Scene{
                 // this.goBackToPrevScene(false);
                 return ;
             }
-            console.log(this.selectedPokemonIndex, PLAYER_POKEMON_TEAM.length);
+            console.log(this.selectedPokemonIndex, this.pokemonTeam.length);
 
-            const selectedPokemon = PLAYER_POKEMON_TEAM[this.selectedPokemonIndex];
+            const selectedPokemon = this.pokemonTeam[this.selectedPokemonIndex];
             selectedPokemon.assetKey = `${selectedPokemon.name}_back`;
             this.battleScene.events.emit("pokemonSwitched", selectedPokemon);
             this.scene.stop();
@@ -144,7 +152,7 @@ export default class scene3 extends Phaser.Scene{
             case DIRECTION.UP:
             
                 if(this.selectedPokemonIndex===-1){
-                    this.selectedPokemonIndex=PLAYER_POKEMON_TEAM.length;
+                    this.selectedPokemonIndex=this.pokemonTeam.length;
                 }
                 this.selectedPokemonIndex-=1;
                 if(this.selectedPokemonIndex<0){
@@ -159,7 +167,7 @@ export default class scene3 extends Phaser.Scene{
                 }
                 this.selectedPokemonIndex+=1;
                 
-                if(this.selectedPokemonIndex>PLAYER_POKEMON_TEAM.length-1){
+                if(this.selectedPokemonIndex>this.pokemonTeam.length-1){
                     this.selectedPokemonIndex=-1;
                 }
                 if(this.selectedPokemonIndex===-1){
@@ -209,10 +217,11 @@ export default class scene3 extends Phaser.Scene{
         pokemonSprite.play(`${pokemonDetails.name}_front`);
         
         const healthBar = new HealthBar(this,70,35,240);
+        console.log(pokemonDetails.name , pokemonDetails.currentHp,pokemonDetails.maxHp)
         
-        healthBar.setMeterPercentageAnimated(pokemonDetails.currentHp/pokemonDetails.maxHp,{
+        healthBar.setMeterPercentageAnimated(pokemonDetails.maxHp/pokemonDetails.currentHp,{
             duration:0,
-            // skipBattleAnimations : true,
+            skipBattleAnimations : true,
         })
         this.HealthBars.push(healthBar);
         
@@ -229,7 +238,7 @@ export default class scene3 extends Phaser.Scene{
         );
         const pokemonLevelText = this.add.text(
             380,20,
-            "Lvl 1",
+            `Lvl ${pokemonDetails.currentLevel}`,
             {
                 color:'#000000' ,
                 fontSize: '22px',

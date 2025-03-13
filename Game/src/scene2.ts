@@ -11,6 +11,9 @@ import { PLAYER_POKEMON_TEAM } from "./player-pokemon-list";
 import { Pokemon } from "./typedef";
 import { POKEMON_DATA } from "./pokemon-data";
 import { Controls } from "./controls";
+import { Player } from "./characters/player";
+import { DATA_MANAGER_KEYS, dataManager } from "./data_manager";
+
 
 
 const BATTLE_STATES = Object.freeze({
@@ -29,13 +32,15 @@ const BATTLE_STATES = Object.freeze({
 export default class scene2 extends Phaser.Scene {
 
     private battlemenu!: BattleMenu;
-   private controls!:Controls
+    private controls!:Controls
     private battleStateMachine!: StateMachine
     
     activeOpponentPokemon!:BattlePokemon;
     activePlayerPokemon!:BattlePokemon;
     private activePlayerAttackIndex!: number;
     private switchingActivePokemon !:boolean;
+    private team !:Pokemon[];
+    private mainPlayer!:Player;
 
     keys = Object.keys(POKEMON) as Array<keyof typeof POKEMON>; 
     randomIndex = Math.floor(Math.random() * this.keys.length); 
@@ -73,7 +78,16 @@ export default class scene2 extends Phaser.Scene {
 
     }   
 
-    create() {
+    create(data: { player?: any }) {
+        if (!data?.player) {
+            console.error("Player data is missing!");
+            return;
+        }
+        this.mainPlayer=data.player;
+        console.log(data.player);
+        this.team= data.player.getPokemonTeam();
+        console.log(this.team);
+        this.PLAYER=this.team[0];
 
         //battle background 
         const battlebg = new Background(this);
@@ -220,7 +234,7 @@ export default class scene2 extends Phaser.Scene {
                 this.activePlayerPokemon.showPokemon();
 
                 //wait for player monster to this.battleIntroText and notify thhe player
-                this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(`Go ${this.activePlayerPokemon.name }!`,()=>{
+                this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput([`Go ${this.activePlayerPokemon.name }!`],()=>{
                     this.time.delayedCall(500,()=>{
                         if(this.switchingActivePokemon){
                             this.battleStateMachine.setState(BATTLE_STATES.ENEMY_INPUT);
@@ -310,7 +324,7 @@ export default class scene2 extends Phaser.Scene {
         this.battleStateMachine.addState({
             name : BATTLE_STATES.SWITCH_POKEMON,
             onEnter: ()=> {
-                const hasPokemon = PLAYER_POKEMON_TEAM.some((pokemonInTeam)=>{
+                const hasPokemon = this.team.some((pokemonInTeam)=>{
                     return (
                         pokemonInTeam.PokemonId!== this.PLAYER.PokemonId && pokemonInTeam.currentHp >0
                     )
@@ -323,7 +337,7 @@ export default class scene2 extends Phaser.Scene {
                     return;
                 }
 
-                this.scene.launch("scene3", {battle:this});
+                this.scene.launch("scene3", {battle:this, player: this.mainPlayer });
                 this.events.once("pokemonSwitched", (newPokemon:Pokemon)=>{
                     this.switchToPokemon(newPokemon);
                 })
@@ -357,61 +371,146 @@ export default class scene2 extends Phaser.Scene {
 
 
 
+    // private playerAttack() {
+    //     const selectedAttack = this.activePlayerPokemon.attacks[this.activePlayerAttackIndex];
+        
+    //     this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
+    //         [`${this.activePlayerPokemon.name} used ${selectedAttack.name}`,],
+    //         () => {
+    //             this.time.delayedCall(1200, () => {
+    //                 // Get the attack type from the attacks data
+    //                 const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
+    //                 const attackType = attackData.find((attack: any) => attack.id === selectedAttack.id)?.type || "NORMAL";
+                    
+    //                 this.activeOpponentPokemon.takeDamage(
+    //                     this.activePlayerPokemon.baseAttack,
+    //                     attackType,
+    //                     () => {
+    //                         this.enemyAttack();
+    //                     }
+    //                 );
+    //             });
+    //         }
+    //     );
+    // }
     private playerAttack() {
         const selectedAttack = this.activePlayerPokemon.attacks[this.activePlayerAttackIndex];
-        
+    
         this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
-            `${this.activePlayerPokemon.name} used ${selectedAttack.name}`,
+            [`${this.activePlayerPokemon.name} used ${selectedAttack.name}`],
             () => {
                 this.time.delayedCall(1200, () => {
                     // Get the attack type from the attacks data
                     const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
                     const attackType = attackData.find((attack: any) => attack.id === selectedAttack.id)?.type || "NORMAL";
-                    
-                    this.activeOpponentPokemon.takeDamage(
+    
+                    // Call takeDamage and get the effectiveness result
+                    const result = this.activeOpponentPokemon.takeDamage(
                         this.activePlayerPokemon.baseAttack,
                         attackType,
                         () => {
-                            this.enemyAttack();
+                            this.enemyAttack(); // Proceed to enemy attack after showing messages
                         }
                     );
+                    const effectiveness= result[0];
+                    const currentHp= result[1];
+                    const playerTeam = dataManager.getPlayerTeam();
+                    const index = playerTeam.findIndex(p => p.name === this.activePlayerPokemon.name);
+                    
+                    if (index !== -1) {
+                        dataManager.updatePokemonHP(index, currentHp);
+                    }
+                    
+
+                    
+    
+                    // Prepare effectiveness message
+                    let effectivenessMessage = "";
+                    if (effectiveness >1) {
+                        effectivenessMessage = "It's super effective!";
+                    } else if (effectiveness<=1) {
+                        effectivenessMessage = "It's not very effective...";
+                    }
+    
+                    // Show effectiveness message if applicable, then proceed
+                    if (effectivenessMessage) {
+                        this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
+                            [effectivenessMessage],
+                            () => this.enemyAttack()
+                        );
+                    } else {
+                        this.enemyAttack(); // No extra message, just continue
+                    }
                 });
             }
         );
     }
+    
 
-    private enemyAttack(onComplete?: () => void){
-        if(this.activeOpponentPokemon.isFainted){
+    private enemyAttack(onComplete?: () => void) {
+        if (this.activeOpponentPokemon.isFainted) {
             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
             if (onComplete) onComplete();
-        return;
+            return;
         }
         if (this.battlemenu.isAttemptingToSwitchPokemon) {
             console.log("Skipping enemy attack due to Pokémon switch.");
             if (onComplete) onComplete();
             return;
         }
-
+    
         const enemyAttack = this.activeOpponentPokemon.attacks[1];
         const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
         const attackType = attackData.find((attack: any) => attack.id === enemyAttack.id)?.type || "NORMAL";
     
         this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
-            `${this.activeOpponentPokemon.name} used ${enemyAttack.name}`,
+            [`${this.activeOpponentPokemon.name} used ${enemyAttack.name}`],
             () => {
                 this.time.delayedCall(500, () => {
-                    this.activePlayerPokemon.takeDamage(
+                    // Call takeDamage and get the effectiveness result
+                    const result  = this.activePlayerPokemon.takeDamage(
                         this.activeOpponentPokemon.baseAttack,
                         attackType,
                         () => {
                             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+                            if (onComplete) onComplete();
                         }
                     );
+                    const effectiveness= result[0];
+                    const currentHp= result[1];
+                    const playerTeam = dataManager.getPlayerTeam();
+                    const index = playerTeam.findIndex(p => p.name === this.activePlayerPokemon.name);
+                    
+                    if (index !== -1) {
+                        dataManager.updatePokemonHP(index, currentHp);
+                    }
+    
+                    // Prepare effectiveness message
+                    let effectivenessMessage = "";
+                    if (effectiveness > 1) {
+                        effectivenessMessage = "It's super effective!";
+                    } else if (effectiveness <= 1) {
+                        effectivenessMessage = "It's not very effective...";
+                    }
+    
+                    // Show effectiveness message if applicable, then proceed
+                    if (effectivenessMessage) {
+                        this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
+                            [effectivenessMessage],
+                            () => {
+                                this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+                                if (onComplete) onComplete();
+                            }
+                        );
+                    } else {
+                        this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+                        if (onComplete) onComplete();
+                    }
                 });
             }
         );
-
     }
+    
 
     private postBattleCheck(){
 

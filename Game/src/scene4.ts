@@ -1,25 +1,24 @@
 import Phaser from "phaser";
-import { WORLD_ASSET_KEYS } from "./asset_keys";
+import { DATA_ASSET_KEYS, WORLD_ASSET_KEYS } from "./asset_keys";
 import { Player } from "./characters/player";
 import { Coordinate } from "./typedef";
 import { Controls } from "./controls";
 import { DIRECTION } from "./direction";
+import { DATA_MANAGER_KEYS, dataManager } from "./data_manager";
 
 const TILE_SIZE= 64;
 
-const PLAYER_POSITION: Coordinate= Object.freeze({
-    x:6*TILE_SIZE,
-    y:21*TILE_SIZE,
-})
 
 export default class scene4 extends Phaser.Scene{
     private player!:Player;
     private controls!:Controls
     private encounterLayer!:Phaser.Tilemaps.TilemapLayer;
     private wildPokemonEncountered!: boolean;
+    private playerTeam : any[];
 
     constructor(){
         super("scene4");
+        this.playerTeam=[];
     }
     init(){
         this.wildPokemonEncountered=false;
@@ -52,8 +51,8 @@ export default class scene4 extends Phaser.Scene{
         this.add.image(0,0,WORLD_ASSET_KEYS.PALLET_TOWN,0).setOrigin(0);
         this.player= new Player({
             scene:this,
-            position:PLAYER_POSITION,
-            direction:DIRECTION.DOWN,
+            position:dataManager.storeData.get(DATA_MANAGER_KEYS.PLAYER_POSTION),
+            direction:dataManager.storeData.get(DATA_MANAGER_KEYS.PLAYER_DIRECTION),
             collisionLayer: collisionlayer,
             spriteGridMovementFinishedCallBack:()=>{
                 this.handlePlayerMovementUpdate();
@@ -64,6 +63,7 @@ export default class scene4 extends Phaser.Scene{
 
         this.controls=new Controls(this);
         this.cameras.main.fadeIn(1000,0,0,0);
+        
     
     }
 
@@ -81,6 +81,16 @@ export default class scene4 extends Phaser.Scene{
         this.player.update(time);
     }
     handlePlayerMovementUpdate(){
+        dataManager.storeData.set(DATA_MANAGER_KEYS.PLAYER_POSTION,{
+            x:this.player.sprite.x,
+            y:this.player.sprite.y,
+        })
+
+        dataManager.storeData.set(DATA_MANAGER_KEYS.PLAYER_DIRECTION,this.player.directionGetter)
+
+
+
+
         if(!this.encounterLayer){
             return;
         }
@@ -89,12 +99,14 @@ export default class scene4 extends Phaser.Scene{
             return;
         }
         console.log("player is in encounter zone ");
-        this.wildPokemonEncountered= Math.random()<0.5;
+        this.wildPokemonEncountered= Math.random()<0.2;
         if(this.wildPokemonEncountered){
             console.log("playerEncounter pokemon")
             this.cameras.main.fadeOut(2000);
             this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{
-                this.scene.start("scene2");
+                console.log(this.player);
+                this.scene.start("scene2", { player: this.player });
+
             })
         }
     }

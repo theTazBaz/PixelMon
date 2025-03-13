@@ -1,44 +1,76 @@
-// import Phaser from "phaser";
-// import { DIRECTION } from "./direction";
-// const TILE_SIZE=64;
+import Phaser from "phaser";
+import { Direction, DIRECTION } from "./direction";
+import { Pokemon } from "./typedef";
+import { PLAYER_POKEMON_TEAM } from "./player-pokemon-list";
+const TILE_SIZE=64;
 
-// export interface GlobalState {
-//     player: Object;
-//     player.position: object;
-//     player.position.x: number; // Defaults to 0 if not provided
-//     player.position.y: number;
-//     player.direction:Direction;
-   
-// }
+interface Position {
+    x: number;
+    y: number;
+}
+
+interface Player {
+    position: Position;
+    direction: Direction;
+    team: Pokemon[];
+}
+
+interface GlobalState {
+    player: Player;
+}
 
 
-// const initialState:GlobalState={
-//     player:{
-//         position:{
-//             x:6*TILE_SIZE,
-//             y:11*TILE_SIZE
+const initialState:GlobalState={
+    player:{
+        position:{
+            x:6*TILE_SIZE,
+            y:21*TILE_SIZE
 
-//         },
-//         direction: DIRECTION.DOWN
-//     }
+        },
+        direction: DIRECTION.DOWN,
+        team:PLAYER_POKEMON_TEAM
+    }
 
-// }
-// class DataManager extends Phaser.Events.EventEmitter{
-//     private store: Phaser.Data.DataManager
-//     constructor(){
-//         super();
-//         this.store= new Phaser.Data.DataManager(this);
-//         this.updateDataManager(data)
-//     }
-//     updateDataManager(data){
-//         this.store.set({
+}
 
-//         })
-//     }
+export const DATA_MANAGER_KEYS = Object.freeze({
+    PLAYER_POSTION: 'PLAYER_POSTION',
+    PLAYER_DIRECTION: 'PLAYER_DIRECTION',
+    PLAYER_TEAM: 'PLAYER_TEAM'
+})
+class DataManager extends Phaser.Events.EventEmitter{
+    private store: Phaser.Data.DataManager
+    constructor(){
+        super();
+        this.store= new Phaser.Data.DataManager(this);
+        this.updateDataManager(initialState);
+    }
+    updateDataManager(data:GlobalState){
+        this.store.set({
+            [DATA_MANAGER_KEYS.PLAYER_POSTION]:data.player.position,
+            [DATA_MANAGER_KEYS.PLAYER_DIRECTION]:data.player.direction,           
+            [DATA_MANAGER_KEYS.PLAYER_TEAM]:data.player.team 
+        })
+    }
 
-//     get storeData(){
-//         return this.store;
-//     }
+    get storeData(){
+        return this.store;
+    }
+    getPlayerTeam(): Pokemon[] {
+        return this.store.get(DATA_MANAGER_KEYS.PLAYER_TEAM) || [];
+    }
+    updatePlayerTeam(newTeam: Pokemon[]) {
+        this.store.set(DATA_MANAGER_KEYS.PLAYER_TEAM, newTeam);
+    }
+    updatePokemonHP(index: number, newHp: number) {
+        let team = this.getPlayerTeam();
+        if (team[index]) {
+            team[index].maxHp = Math.max(0, Math.min(newHp, team[index].maxHp));
+            this.updatePlayerTeam(team);
+        }
+    }
 
-// }
-// export const dataManager = new DataManager();
+
+}
+export const dataManager = new DataManager();
+ 

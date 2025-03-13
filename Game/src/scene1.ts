@@ -49,7 +49,7 @@ export default class scene1 extends Phaser.Scene
             return;
         }
         this.createAnimations();
-        // this.scene.start("scene4");
+        this.scene.start("scene4");
 
 
         // Start the next scene when the "Enter" key is pressed

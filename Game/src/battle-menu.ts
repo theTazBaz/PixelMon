@@ -214,19 +214,39 @@ export class BattleMenu{
         
     }
 
-    updateInfoPaneMsgsWithoutPlayerInput(message: string, callback?: ()=>void ){
-        this.textLine1.setText('').setAlpha(1);
+    // updateInfoPaneMsgsWithoutPlayerInput(message: string, callback?: ()=>void ){
+    //     this.textLine1.setText('').setAlpha(1);
         
-        this.textLine1.setText(message);
+    //     this.textLine1.setText(message);
         
-        this.WaitForPlayerInput=false;
-        if(callback){
+    //     this.WaitForPlayerInput=false;
+    //     if(callback){
             
-            callback();
+    //         callback();
             
-        }
+    //     }
 
-    }
+    // }
+   updateInfoPaneMsgsWithoutPlayerInput(messages: string[], callback?: () => void) {
+    let index = 0;
+
+    const showNextMessage = () => {
+        if (index < messages.length) {
+            this.textLine1.setText('').setAlpha(1);
+            this.textLine1.setText(messages[index]);
+            index++;
+
+            // Use setTimeout instead of this.time.delayedCall
+            setTimeout(showNextMessage, 1000); // 1-second delay (adjust as needed)
+        } else if (callback) {
+            callback();
+        }
+    };
+
+    showNextMessage();
+}
+
+    
 
     // This is for messages in the Player options  
     updateInfoPaneMsgsWaitForPlayerInput(messages: string[], callback?: ()=>void ){
