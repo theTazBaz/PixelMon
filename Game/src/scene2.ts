@@ -11,6 +11,7 @@ import { PLAYER_POKEMON_TEAM } from "./player-pokemon-list";
 import { Pokemon } from "./typedef";
 import { POKEMON_DATA } from "./pokemon-data";
 import { Controls } from "./controls";
+import { TYPE_EFFECTIVENESS } from "./type-effectiveness";
 
 
 const BATTLE_STATES = Object.freeze({
@@ -220,7 +221,7 @@ export default class scene2 extends Phaser.Scene {
                 this.activePlayerPokemon.showPokemon();
 
                 //wait for player monster to this.battleIntroText and notify thhe player
-                this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(`Go ${this.activePlayerPokemon.name }!`,()=>{
+                this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput([`Go ${this.activePlayerPokemon.name }!`],()=>{
                     this.time.delayedCall(500,()=>{
                         if(this.switchingActivePokemon){
                             this.battleStateMachine.setState(BATTLE_STATES.ENEMY_INPUT);
@@ -361,7 +362,7 @@ export default class scene2 extends Phaser.Scene {
         const selectedAttack = this.activePlayerPokemon.attacks[this.activePlayerAttackIndex];
         
         this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
-            `${this.activePlayerPokemon.name} used ${selectedAttack.name}`,
+            [`${this.activePlayerPokemon.name} used ${selectedAttack.name}`,()],
             () => {
                 this.time.delayedCall(1200, () => {
                     // Get the attack type from the attacks data
@@ -369,7 +370,7 @@ export default class scene2 extends Phaser.Scene {
                     const attackType = attackData.find((attack: any) => attack.id === selectedAttack.id)?.type || "NORMAL";
                     
                     this.activeOpponentPokemon.takeDamage(
-                        this.activePlayerPokemon.baseAttack,
+                        this.activePlayerPokemon.baseAttack*0.25*this.activePlayerPokemon.level,
                         attackType,
                         () => {
                             this.enemyAttack();
@@ -397,11 +398,11 @@ export default class scene2 extends Phaser.Scene {
         const attackType = attackData.find((attack: any) => attack.id === enemyAttack.id)?.type || "NORMAL";
     
         this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
-            `${this.activeOpponentPokemon.name} used ${enemyAttack.name}`,
+            [`${this.activeOpponentPokemon.name} used ${enemyAttack.name}`],
             () => {
                 this.time.delayedCall(500, () => {
                     this.activePlayerPokemon.takeDamage(
-                        this.activeOpponentPokemon.baseAttack,
+                        this.activeOpponentPokemon.baseAttack*0.25*this.activeOpponentPokemon.level,
                         attackType,
                         () => {
                             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
@@ -413,23 +414,33 @@ export default class scene2 extends Phaser.Scene {
 
     }
 
-    private postBattleCheck(){
+    private postBattleCheck() {
+  if (this.activeOpponentPokemon.isFainted) {
+    const experienceGained = 1000; // Example experience gained from defeating an opponent
+    this.activePlayerPokemon.addExperience(experienceGained);
 
-        if(this.activeOpponentPokemon.isFainted){
-            this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput([`Wild ${this.activeOpponentPokemon.name} Fainted `,`${this.activePlayerPokemon.name} gained Experience`],
-                ()=>{
-                    this.battleStateMachine.setState(BATTLE_STATES.FINISHED);
+    this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
+      [`Wild ${this.activeOpponentPokemon.name} Fainted `, `${this.activePlayerPokemon.name} gained Experience`],
+      () => {
+        this.battleStateMachine.setState(BATTLE_STATES.FINISHED);
+      }
+    );
+    return;
+  }
 
-                    })
-            return ;}
-    if(this.activePlayerPokemon.isFainted){
-        this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput([` ${this.activePlayerPokemon.name} Fainted `, "You running to safety"],
-            ()=>{
-                this.battleStateMachine.setState(BATTLE_STATES.FINISHED);})
-            return ;}
-            this.battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT);}
+  if (this.activePlayerPokemon.isFainted) {
+    this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
+      [`${this.activePlayerPokemon.name} Fainted `, "You running to safety"],
+      () => {
+        this.battleStateMachine.setState(BATTLE_STATES.FINISHED);
+      }
+    );
+    return;
+  }
 
-    
+  this.battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT);
+}
+
 
     private transitionNextScene(){
         this.cameras.main.fadeOut(2600,0 ,0 ,0) ;
