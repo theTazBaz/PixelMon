@@ -100,6 +100,7 @@ export class BattlePokemon {
     
         // Update the health bar text
         this.setHealthBarText();
+        return effectiveness;
     }
     
     private calculateTypeEffectiveness(attackType: string): number {
@@ -302,5 +303,6 @@ createHealthBarComponents() {
       }
     }
     
+
 
 
