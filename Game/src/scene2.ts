@@ -357,42 +357,61 @@ export default class scene2 extends Phaser.Scene {
 
 
 
-
     private playerAttack() {
         const selectedAttack = this.activePlayerPokemon.attacks[this.activePlayerAttackIndex];
-        
+    
         this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
-            [`${this.activePlayerPokemon.name} used ${selectedAttack.name}`,()],
+            [`${this.activePlayerPokemon.name} used ${selectedAttack.name}`],
             () => {
                 this.time.delayedCall(1200, () => {
                     // Get the attack type from the attacks data
                     const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
                     const attackType = attackData.find((attack: any) => attack.id === selectedAttack.id)?.type || "NORMAL";
-                    
-                    this.activeOpponentPokemon.takeDamage(
-                        this.activePlayerPokemon.baseAttack*0.25*this.activePlayerPokemon.level,
+    
+                    // Call takeDamage and get the effectiveness result
+                    const effectiveness = this.activeOpponentPokemon.takeDamage(
+                        this.activePlayerPokemon.baseAttack,
                         attackType,
                         () => {
-                            this.enemyAttack();
+                            this.enemyAttack(); // Proceed to enemy attack after showing messages
                         }
                     );
+    
+                    // Prepare effectiveness message
+                    let effectivenessMessage = "";
+                    if (effectiveness >1) {
+                        effectivenessMessage = "It's super effective!";
+                    } else if (effectiveness<=1) {
+                        effectivenessMessage = "It's not very effective...";
+                    }
+    
+                    // Show effectiveness message if applicable, then proceed
+                    if (effectivenessMessage) {
+                        this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
+                            [effectivenessMessage],
+                            () => this.enemyAttack()
+                        );
+                    } else {
+                        this.enemyAttack(); // No extra message, just continue
+                    }
                 });
             }
         );
     }
+    
 
-    private enemyAttack(onComplete?: () => void){
-        if(this.activeOpponentPokemon.isFainted){
+    private enemyAttack(onComplete?: () => void) {
+        if (this.activeOpponentPokemon.isFainted) {
             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
             if (onComplete) onComplete();
-        return;
+            return;
         }
         if (this.battlemenu.isAttemptingToSwitchPokemon) {
             console.log("Skipping enemy attack due to Pokémon switch.");
             if (onComplete) onComplete();
             return;
         }
-
+    
         const enemyAttack = this.activeOpponentPokemon.attacks[1];
         const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
         const attackType = attackData.find((attack: any) => attack.id === enemyAttack.id)?.type || "NORMAL";
@@ -401,19 +420,41 @@ export default class scene2 extends Phaser.Scene {
             [`${this.activeOpponentPokemon.name} used ${enemyAttack.name}`],
             () => {
                 this.time.delayedCall(500, () => {
-                    this.activePlayerPokemon.takeDamage(
-                        this.activeOpponentPokemon.baseAttack*0.25*this.activeOpponentPokemon.level,
+                    // Call takeDamage and get the effectiveness result
+                    const effectiveness = this.activePlayerPokemon.takeDamage(
+                        this.activeOpponentPokemon.baseAttack,
                         attackType,
                         () => {
                             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+                            if (onComplete) onComplete();
                         }
                     );
+    
+                    // Prepare effectiveness message
+                    let effectivenessMessage = "";
+                    if (effectiveness > 1) {
+                        effectivenessMessage = "It's super effective!";
+                    } else if (effectiveness <= 1) {
+                        effectivenessMessage = "It's not very effective...";
+                    }
+    
+                    // Show effectiveness message if applicable, then proceed
+                    if (effectivenessMessage) {
+                        this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
+                            [effectivenessMessage],
+                            () => {
+                                this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+                                if (onComplete) onComplete();
+                            }
+                        );
+                    } else {
+                        this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+                        if (onComplete) onComplete();
+                    }
                 });
             }
-        );
-
-    }
-
+        );
+    }
     private postBattleCheck() {
   if (this.activeOpponentPokemon.isFainted) {
     const experienceGained = 1000; // Example experience gained from defeating an opponent
