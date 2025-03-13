@@ -14,7 +14,8 @@ const Style = {
 const BATTLE_MENU_OPTIONS = Object.freeze({
     FIGHT: 'FIGHT' , 
     RUN : 'RUN',
-    SWITCH: 'SWITCH'
+    SWITCH: 'SWITCH',
+    CATCH: 'CATCH'
 } as const )
 
 export type BattleOPtions = keyof typeof BATTLE_MENU_OPTIONS;
@@ -25,6 +26,7 @@ const ACTIVE_BATTLE_MENU = Object.freeze({
     FIGHT: 'FIGHT',
     RUN: 'RUN',
     SWITCH: 'SWITCH',
+    CATCH: 'CATCH'
 } as const);
 
 type ActiveBattleMenu = keyof typeof ACTIVE_BATTLE_MENU;
@@ -135,6 +137,7 @@ export class BattleMenu{
         this.PlayerOptions.setAlpha(1);
         this.switchPokemon=false;
         this.runattempt=false
+
 
     }
 
@@ -273,6 +276,7 @@ export class BattleMenu{
             this.scene.add.text(70,35 , BATTLE_MENU_OPTIONS.FIGHT, Style),
             this.scene.add.text(230,35 , BATTLE_MENU_OPTIONS.RUN, Style),
             this.scene.add.text(70,90 , BATTLE_MENU_OPTIONS.SWITCH, Style ),
+            this.scene.add.text(230,90 , BATTLE_MENU_OPTIONS.CATCH, Style ),
             this.cursorObject,
         ])        
         this.hideMainBattleMenu();
