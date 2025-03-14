@@ -57,7 +57,6 @@ export class Character{
         if(this.isMoving){
             return;
         }
-        console.log("in moveCharacter",this.direction)
         
         switch (this.direction) {
             case DIRECTION.UP:
@@ -89,20 +88,18 @@ export class Character{
 
     movesprite(){
         
-        console.log("in movesprite",this.direction)
+        
     
         if(this.isBlockingTile()){
             return;
         }
         
         this.isMoving=true;
-        console.log(this.direction)
         this.handleSpriteMovement();
 
 
     }
     handleSpriteMovement(){
-        console.log(this.direction)
 
         if(this.direction===DIRECTION.NONE){
             return;

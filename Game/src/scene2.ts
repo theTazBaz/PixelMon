@@ -35,14 +35,12 @@ export default class scene2 extends Phaser.Scene {
     private battlemenu!: BattleMenu;
     private controls!:Controls
     private battleStateMachine!: StateMachine
-    
     activeOpponentPokemon!:BattlePokemon;
     activePlayerPokemon!:BattlePokemon;
     private activePlayerAttackIndex!: number;
     private switchingActivePokemon !:boolean;
     private team !:Pokemon[];
     private mainPlayer!:Player;
-
     keys:any ;
     randomIndex !:number; 
     OPPONENT:any ;
@@ -58,7 +56,6 @@ export default class scene2 extends Phaser.Scene {
         this.keys =  Object.keys(POKEMON) as Array<keyof typeof POKEMON>;
         this.randomIndex = Math.floor(Math.random() * this.keys.length);
         this.OPPONENT = this.keys[this.randomIndex];
-        console.log("this is init")
         
     }
 
@@ -90,6 +87,7 @@ export default class scene2 extends Phaser.Scene {
         this.team= data.player.getPokemonTeam();
         console.log(this.team);
         this.PLAYER=this.team[0];
+        console.log(this.PLAYER.currentHp);
 
         //battle background 
         const battlebg = new Background(this);
@@ -483,7 +481,7 @@ export default class scene2 extends Phaser.Scene {
                 this.time.delayedCall(1200, () => {
                     // Call takeDamage and get the effectiveness result
                     const result = this.activePlayerPokemon.takeDamage(
-                        this.activeOpponentPokemon.baseAttack*0.5,
+                        this.activeOpponentPokemon.baseAttack,
                         attackType,
                         () => {
                             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
@@ -515,8 +513,8 @@ export default class scene2 extends Phaser.Scene {
                     }
                 });
             }
-        );
-    }
+);
+}
 
     private postBattleCheck(){
 
@@ -544,30 +542,21 @@ export default class scene2 extends Phaser.Scene {
     }
 
 
-    // handleSceneResume(data: Pokemon) {
-    //     this.switchingActivePokemon = true;
-    //     this.PLAYER = data; // Update the active Pokémon
-    //     this.battlemenu.updatePlayerPokemon(this.activePlayerPokemon); // Update the battle menu
     
-    //     // Play switch animations
-    //         this.activePlayerPokemon.playSwitchAnimation(this.PLAYER, () => {
-    //         this.battleStateMachine.setState(BATTLE_STATES.BRING_OUT_PLAYER);
-    //     });
-    // }
     private calculateCatchProbability(pokemon: BattlePokemon): number {
         const levelFactor = 1 - (pokemon.level / 100); // Adjust this formula as needed
         const hpFactor = 1 - (pokemon.currentHealth / pokemon.maxHealth);
         const catchProbability = (levelFactor + hpFactor) / 2; // Adjust this formula as needed
     
         return catchProbability;
-      }
+    }
     
       // Method to add Pokémon to player's list
-      private addPokemonToPlayerList(pokemon: BattlePokemon) {
+    private addPokemonToPlayerList(pokemon: BattlePokemon) {
         // Logic to add the caught Pokémon to the player's Pokémon list
         // This might involve updating a player data structure or database
         console.log(`Added ${pokemon.name} to player's list.`);
-      }
+    }
     
     
 }

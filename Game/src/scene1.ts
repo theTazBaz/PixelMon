@@ -13,7 +13,6 @@ export default class scene1 extends Phaser.Scene
     preload()
     {
         for (const pokemon of Object.values(POKEMON_DATA)) {
-            console.log(pokemon.name);
             this.load.atlas(`${pokemon.name}_front`, `src/assets/pokemon/${pokemon.name}_front.png`,`src/assets/pokemon_json/${pokemon.name}_front.json`);
             this.load.atlas(`${pokemon.name}_back`, `src/assets/pokemon/${pokemon.name}_back.png`,`src/assets/pokemon_json/${pokemon.name}_back.json`);
 
@@ -28,7 +27,7 @@ export default class scene1 extends Phaser.Scene
         this.load.image(WORLD_ASSET_KEYS.PALLET_TOWN, "src/assets/cities/level_background.png")
         this.load.tilemapTiledJSON(WORLD_ASSET_KEYS.PALLET_MAIN_LEVEL, "src/assets/cities/level.json")
         this.load.image(WORLD_ASSET_KEYS.PALLET_COLLISION, "src/assets/cities/collision.png")
-        this.load.image(WORLD_ASSET_KEYS.PALLET_FOREGROUND, "src/assets/cities/foreground.png")
+        this.load.image(WORLD_ASSET_KEYS.PALLET_FOREGROUND, "src/assets/cities/level_foreground.png")
         this.load.image(WORLD_ASSET_KEYS.PALLET_ENCOUNTER_ZONE, "src/assets/cities/encounter.png")
         
         //loading character assets

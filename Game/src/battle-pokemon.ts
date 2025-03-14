@@ -142,8 +142,7 @@ createHealthBarComponents() {
             fontSize: '22px',
         }
     );
-    console.log(`${this._pokemonDetails}`)
-    console.log(`${this._pokemonDetails.currentLevel}`)
+    
     this._pokemonLevelText = this._scene.add.text(
         this._pokemonNameText.width + 40 * 0.75,
         26 * 0.75,

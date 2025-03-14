@@ -11,7 +11,7 @@ export class Player extends Character{
         super({
             ...config,
             assetKey:CHARACTER_ASSET_KEYS.PLAYER,
-            assetFrame:7,
+            assetFrame:0,
         });
         this.pokemonTeam = dataManager.storeData.get(DATA_MANAGER_KEYS.PLAYER_TEAM) || [];
         
@@ -25,7 +25,7 @@ export class Player extends Character{
                 case DIRECTION.LEFT:
                 case DIRECTION.UP:
                 case DIRECTION.RIGHT:
-                    console.log(this.direction);
+
                 if(this.phaserGameObject.anims.currentAnim?.key!==`PLAYER_${this.direction}`){
                             this.phaserGameObject.anims.play(`PLAYER_${this.direction}`)
                     }

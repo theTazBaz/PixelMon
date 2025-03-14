@@ -74,7 +74,7 @@ export default class scene4 extends Phaser.Scene{
         }
         const selectedDirection = this.controls.getDirectionKeyPressedDown();
         if(selectedDirection!== DIRECTION.NONE){
-            console.log("in scene4",selectedDirection)
+
             this.player.moveCharacter(selectedDirection);
         }
 
@@ -98,13 +98,12 @@ export default class scene4 extends Phaser.Scene{
         if(!isInEncounterZone){
             return;
         }
-        console.log("player is in encounter zone ");
+        
         this.wildPokemonEncountered= Math.random()<0.2;
         if(this.wildPokemonEncountered){
-            console.log("playerEncounter pokemon")
             this.cameras.main.fadeOut(2000);
             this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{
-                console.log(this.player);
+                
                 this.scene.start("scene2", { player: this.player });
 
             })
