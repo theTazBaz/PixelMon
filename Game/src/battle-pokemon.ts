@@ -16,7 +16,10 @@ export class BattlePokemon {
     protected data: any;
     public type: string;
     protected _healthBarText!: Phaser.GameObjects.Text;
-
+    private _level: number;
+  private _experience: number;
+  private _experienceToNextLevel: number;
+  private _pokemonLevelText!: Phaser.GameObjects.Text;
 
 
     constructor(config: BattlePokemonConfig, position: Coordinate ) {
@@ -26,6 +29,12 @@ export class BattlePokemon {
         this.maxHealth=this._pokemonDetails.maxHp;
         this.pokemonAttacks = [];
         this.type = this._pokemonDetails.type; 
+        this._level = config._pokemonDetails.currentLevel || 1;
+    this._experience = 0; // Initialize experience to 0
+    this._experienceToNextLevel = this.calculateExperienceToNextLevel(this._level);
+
+    
+
 
         const animationKey = `${this._pokemonDetails.name}_animation`;
         if (!this._scene.anims.exists(animationKey)) {
@@ -135,15 +144,16 @@ createHealthBarComponents() {
     );
     console.log(`${this._pokemonDetails}`)
     console.log(`${this._pokemonDetails.currentLevel}`)
-    const pokemonLevelText = this._scene.add.text(
-        this._pokemonNameText.width+40*0.75,
-        26*0.75,
+    this._pokemonLevelText = this._scene.add.text(
+        this._pokemonNameText.width + 40 * 0.75,
+        26 * 0.75,
         `Lvl ${this._pokemonDetails.currentLevel}`,
         {
-            color:'#000000' ,
-            fontSize: '16px',
+          color: "#000000",
+          fontSize: "16px",
         }
-    );
+      );
+
     const pokemonHPText = this._scene.add.text(
         30*0.75,
         55*0.75,
@@ -172,7 +182,7 @@ createHealthBarComponents() {
     this._phaserHealthBarGameContainer = this._scene.add.container(50, 25, [
             healthbarBackground,
             this._pokemonNameText,
-            pokemonLevelText,
+            this._pokemonLevelText,
             pokemonHPText,
             this._healthBar.container,
         
@@ -240,7 +250,59 @@ createHealthBarComponents() {
             }
         });
     }
+
+    addExperience(experienceGained: number) {
+        this._experience += experienceGained;
+    
+        // Check if the Pokémon should level up
+        if (this._experience >= this._experienceToNextLevel) {
+          this.levelUp();
+        }
+      }
+    
+      // Method to level up the Pokémon
+      private levelUp() {
+        const levelsGained = Math.floor(this._experience / this._experienceToNextLevel);
+    
+        this._level += levelsGained;
+        this._experience -= levelsGained * this._experienceToNextLevel;
+    
+        // Update experience needed for the next level
+        this._experienceToNextLevel = this.calculateExperienceToNextLevel(this._level);
+    
+        // Update stats (for simplicity, just increase max HP and base attack)
+        this.maxHealth += levelsGained * 5; // Example increase
+    
+        console.log(`Pokémon leveled up to level ${this._level}!`);
+  this.updateLevelText();
+      }
+    
+      // Function to calculate experience needed for the next level
+      private calculateExperienceToNextLevel(level: number): number {
+        // Simple formula for demonstration; adjust as needed
+        return Math.floor(100 * Math.pow(level, 1.5));
+      }
+    
+      // Getters for level and experience
+      get level(): number {
+        return this._level;
+      }
+    
+      get experience(): number {
+        return this._experience;
+      }
+    
+      get experienceToNextLevel(): number {
+        return this._experienceToNextLevel;
+      }
+
+      updateLevelText() {
+        if (this._pokemonLevelText) {
+          this._pokemonLevelText.setText(`Lvl ${this.level}`);
+        }
+      }
+    }
     
 
 
-}
+

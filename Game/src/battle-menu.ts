@@ -14,7 +14,8 @@ const Style = {
 const BATTLE_MENU_OPTIONS = Object.freeze({
     FIGHT: 'FIGHT' , 
     RUN : 'RUN',
-    SWITCH: 'SWITCH'
+    SWITCH: 'SWITCH',
+    CATCH: 'CATCH'
 } as const )
 
 export type BattleOPtions = keyof typeof BATTLE_MENU_OPTIONS;
@@ -25,6 +26,7 @@ const ACTIVE_BATTLE_MENU = Object.freeze({
     FIGHT: 'FIGHT',
     RUN: 'RUN',
     SWITCH: 'SWITCH',
+    CATCH: 'CATCH'
 } as const);
 
 type ActiveBattleMenu = keyof typeof ACTIVE_BATTLE_MENU;
@@ -106,24 +108,22 @@ export class BattleMenu{
 
     }
 
-    updatePokemonAttackSubMenu(){
-        const attackNames :string[] = [];
-        for (let i = 0 ; i<4; i+=1){
-            attackNames.push(this.activePlayerPokemon.attacks[i]?.name|| "-");
+    updatePokemonAttackSubMenu() {
+        const attackNames: string[] = [];
+      
+        for (let i = 0; i < 4; i += 1) {
+          attackNames.push(this.activePlayerPokemon.attacks[i]?.name || "-");
         }
-
-
-
+      
         const texts = this.PokemonAttackList.list.filter(obj => obj instanceof Phaser.GameObjects.Text) as Phaser.GameObjects.Text[];
-    
+      
         if (texts.length >= 4) {
-            texts[0].setText(attackNames[0]);
-            texts[1].setText(attackNames[1]);
-            texts[2].setText(attackNames[2]);
-            texts[3].setText(attackNames[3]);
+          texts[0].setText(attackNames[0]);
+          texts[1].setText(attackNames[1]);
+          texts[2].setText(attackNames[2]);
+          texts[3].setText(attackNames[3]);
         }
-
-    }
+      }
     //To show the initial Info Pane about pokemon appearing and player options 
     showMainBattleMenu(){
         this.activeBattleMenu =ACTIVE_BATTLE_MENU.BATTLE_MAIN;
@@ -137,6 +137,7 @@ export class BattleMenu{
         this.PlayerOptions.setAlpha(1);
         this.switchPokemon=false;
         this.runattempt=false
+
 
     }
 
@@ -214,39 +215,24 @@ export class BattleMenu{
         
     }
 
-    // updateInfoPaneMsgsWithoutPlayerInput(message: string, callback?: ()=>void ){
-    //     this.textLine1.setText('').setAlpha(1);
-        
-    //     this.textLine1.setText(message);
-        
-    //     this.WaitForPlayerInput=false;
-    //     if(callback){
-            
-    //         callback();
-            
-    //     }
-
-    // }
-   updateInfoPaneMsgsWithoutPlayerInput(messages: string[], callback?: () => void) {
-    let index = 0;
-
-    const showNextMessage = () => {
-        if (index < messages.length) {
-            this.textLine1.setText('').setAlpha(1);
-            this.textLine1.setText(messages[index]);
-            index++;
-
-            // Use setTimeout instead of this.time.delayedCall
-            setTimeout(showNextMessage, 1000); // 1-second delay (adjust as needed)
-        } else if (callback) {
-            callback();
-        }
-    };
-
-    showNextMessage();
-}
-
+    updateInfoPaneMsgsWithoutPlayerInput(messages: string[], callback?: () => void) {
+        let index = 0;
     
+        const showNextMessage = () => {
+            if (index < messages.length) {
+                this.textLine1.setText('').setAlpha(1);
+                this.textLine1.setText(messages[index]);
+                index++;
+    
+                // Use setTimeout instead of this.time.delayedCall
+                setTimeout(showNextMessage, 1000); // 1-second delay (adjust as needed)
+            } else if (callback) {
+                callback();
+            }
+        };
+    
+        showNextMessage();
+    }
 
     // This is for messages in the Player options  
     updateInfoPaneMsgsWaitForPlayerInput(messages: string[], callback?: ()=>void ){
@@ -290,6 +276,7 @@ export class BattleMenu{
             this.scene.add.text(70,35 , BATTLE_MENU_OPTIONS.FIGHT, Style),
             this.scene.add.text(230,35 , BATTLE_MENU_OPTIONS.RUN, Style),
             this.scene.add.text(70,90 , BATTLE_MENU_OPTIONS.SWITCH, Style ),
+            this.scene.add.text(230,90 , BATTLE_MENU_OPTIONS.CATCH, Style ),
             this.cursorObject,
         ])        
         this.hideMainBattleMenu();

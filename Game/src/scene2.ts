@@ -232,6 +232,7 @@ export default class scene2 extends Phaser.Scene {
 
                 //wait for player monster to this.battleIntroText and notify thhe player
                 this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput([`Go ${this.activePlayerPokemon.name }!`],()=>{
+                this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput([`Go ${this.activePlayerPokemon.name }!`],()=>{
                     this.time.delayedCall(500,()=>{
                         if(this.switchingActivePokemon){
                             this.battleStateMachine.setState(BATTLE_STATES.ENEMY_INPUT);
@@ -393,7 +394,9 @@ export default class scene2 extends Phaser.Scene {
     private playerAttack() {
         const selectedAttack = this.activePlayerPokemon.attacks[this.activePlayerAttackIndex];
     
+    
         this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
+            [`${this.activePlayerPokemon.name} used ${selectedAttack.name}`],
             [`${this.activePlayerPokemon.name} used ${selectedAttack.name}`],
             () => {
                 this.time.delayedCall(1200, () => {
@@ -406,6 +409,7 @@ export default class scene2 extends Phaser.Scene {
                         this.activePlayerPokemon.baseAttack,
                         attackType,
                         () => {
+                            this.enemyAttack(); // Proceed to enemy attack after showing messages
                             this.enemyAttack(); // Proceed to enemy attack after showing messages
                         }
                     );
@@ -446,8 +450,13 @@ export default class scene2 extends Phaser.Scene {
 
     private enemyAttack(onComplete?: () => void) {
         if (this.activeOpponentPokemon.isFainted) {
+    
+
+    private enemyAttack(onComplete?: () => void) {
+        if (this.activeOpponentPokemon.isFainted) {
             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
             if (onComplete) onComplete();
+            return;
             return;
         }
         if (this.battlemenu.isAttemptingToSwitchPokemon) {
@@ -456,11 +465,13 @@ export default class scene2 extends Phaser.Scene {
             return;
         }
     
+    
         const enemyAttack = this.activeOpponentPokemon.attacks[1];
         const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
         const attackType = attackData.find((attack: any) => attack.id === enemyAttack.id)?.type || "NORMAL";
     
         this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
+            [`${this.activeOpponentPokemon.name} used ${enemyAttack.name}`],
             [`${this.activeOpponentPokemon.name} used ${enemyAttack.name}`],
             () => {
                 this.time.delayedCall(500, () => {
@@ -470,6 +481,7 @@ export default class scene2 extends Phaser.Scene {
                         attackType,
                         () => {
                             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+                            if (onComplete) onComplete();
                             if (onComplete) onComplete();
                         }
                     );
