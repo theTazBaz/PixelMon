@@ -69,7 +69,18 @@ class DataManager extends Phaser.Events.EventEmitter{
             this.updatePlayerTeam(team);
         }
     }
+    
+    updatePokemonExperience(index: number, newExperience: number, newLevel: number) {
+            let team = this.getPlayerTeam();
+        
+            if (team[index]) {
+              team[index].experience = newExperience;
+              team[index].currentLevel = newLevel;
+              this.updatePlayerTeam(team);
+            }
+          }
+    }
 
 
-}
+
 export const dataManager = new DataManager();
