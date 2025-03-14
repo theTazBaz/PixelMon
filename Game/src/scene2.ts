@@ -79,7 +79,7 @@ export default class scene2 extends Phaser.Scene {
     }   
 
     create(data: { player?: any }) {
-       
+
         this.mainPlayer=data.player;
         console.log(data.player);
         this.team= data.player.getPokemonTeam();
@@ -232,7 +232,6 @@ export default class scene2 extends Phaser.Scene {
 
                 //wait for player monster to this.battleIntroText and notify thhe player
                 this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput([`Go ${this.activePlayerPokemon.name }!`],()=>{
-                this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput([`Go ${this.activePlayerPokemon.name }!`],()=>{
                     this.time.delayedCall(500,()=>{
                         if(this.switchingActivePokemon){
                             this.battleStateMachine.setState(BATTLE_STATES.ENEMY_INPUT);
@@ -365,38 +364,10 @@ export default class scene2 extends Phaser.Scene {
                 })
     }
     
-
-
-
-
-    // private playerAttack() {
-    //     const selectedAttack = this.activePlayerPokemon.attacks[this.activePlayerAttackIndex];
-        
-    //     this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
-    //         [`${this.activePlayerPokemon.name} used ${selectedAttack.name}`,],
-    //         () => {
-    //             this.time.delayedCall(1200, () => {
-    //                 // Get the attack type from the attacks data
-    //                 const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
-    //                 const attackType = attackData.find((attack: any) => attack.id === selectedAttack.id)?.type || "NORMAL";
-                    
-    //                 this.activeOpponentPokemon.takeDamage(
-    //                     this.activePlayerPokemon.baseAttack,
-    //                     attackType,
-    //                     () => {
-    //                         this.enemyAttack();
-    //                     }
-    //                 );
-    //             });
-    //         }
-    //     );
-    // }
     private playerAttack() {
         const selectedAttack = this.activePlayerPokemon.attacks[this.activePlayerAttackIndex];
     
-    
         this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
-            [`${this.activePlayerPokemon.name} used ${selectedAttack.name}`],
             [`${this.activePlayerPokemon.name} used ${selectedAttack.name}`],
             () => {
                 this.time.delayedCall(1200, () => {
@@ -409,7 +380,6 @@ export default class scene2 extends Phaser.Scene {
                         this.activePlayerPokemon.baseAttack,
                         attackType,
                         () => {
-                            this.enemyAttack(); // Proceed to enemy attack after showing messages
                             this.enemyAttack(); // Proceed to enemy attack after showing messages
                         }
                     );
@@ -448,8 +418,7 @@ export default class scene2 extends Phaser.Scene {
     }
     
 
-    private enemyAttack(onComplete?: () => void) {
-        if (this.activeOpponentPokemon.isFainted) {
+    
     
 
     private enemyAttack(onComplete?: () => void) {
@@ -472,54 +441,21 @@ export default class scene2 extends Phaser.Scene {
     
         this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
             [`${this.activeOpponentPokemon.name} used ${enemyAttack.name}`],
-            [`${this.activeOpponentPokemon.name} used ${enemyAttack.name}`],
             () => {
                 this.time.delayedCall(500, () => {
-                    // Call takeDamage and get the effectiveness result
-                    const result  = this.activePlayerPokemon.takeDamage(
+                    this.activePlayerPokemon.takeDamage(
                         this.activeOpponentPokemon.baseAttack,
                         attackType,
                         () => {
                             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
                             if (onComplete) onComplete();
-                            if (onComplete) onComplete();
                         }
                     );
-                    const effectiveness= result[0];
-                    const currentHp= result[1];
-                    const playerTeam = dataManager.getPlayerTeam();
-                    const index = playerTeam.findIndex(p => p.name === this.activePlayerPokemon.name);
-                    
-                    if (index !== -1) {
-                        dataManager.updatePokemonHP(index, currentHp);
-                    }
-    
-                    // Prepare effectiveness message
-                    let effectivenessMessage = "";
-                    if (effectiveness > 1) {
-                        effectivenessMessage = "It's super effective!";
-                    } else if (effectiveness <= 1) {
-                        effectivenessMessage = "It's not very effective...";
-                    }
-    
-                    // Show effectiveness message if applicable, then proceed
-                    if (effectivenessMessage) {
-                        this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
-                            [effectivenessMessage],
-                            () => {
-                                this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
-                                if (onComplete) onComplete();
-                            }
-                        );
-                    } else {
-                        this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
-                        if (onComplete) onComplete();
-                    }
                 });
             }
         );
+
     }
-    
 
     private postBattleCheck(){
 
@@ -546,15 +482,4 @@ export default class scene2 extends Phaser.Scene {
         })
     }
 
-    // handleSceneResume(data: Pokemon) {
-    //     this.switchingActivePokemon = true;
-    //     this.PLAYER = data; // Update the active Pokémon
-    //     this.battlemenu.updatePlayerPokemon(this.activePlayerPokemon); // Update the battle menu
-    
-    //     // Play switch animations
-    //         this.activePlayerPokemon.playSwitchAnimation(this.PLAYER, () => {
-    //         this.battleStateMachine.setState(BATTLE_STATES.BRING_OUT_PLAYER);
-    //     });
-    // }
-    
 }
