@@ -9,8 +9,8 @@ export class BattlePokemon {
     protected _phaserGameObject: Phaser.GameObjects.Sprite;
     protected _healthBar!: HealthBar;
     protected pokemonAttacks: Attack[];
-    protected currentHealth: number;
-    protected maxHealth: number;
+    public currentHealth: number;
+    public maxHealth: number;
     protected _phaserHealthBarGameContainer!: Phaser.GameObjects.Container;
     protected _pokemonNameText !:Phaser.GameObjects.Text;
     protected data: any;

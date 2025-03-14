@@ -1,93 +1,134 @@
 import Phaser from "phaser";
+
 import { DIRECTION, Direction } from "./direction";
+
 import { CURSORS } from "./asset_keys";
+
 import { BattlePokemon } from "./battle-pokemon";
-// import { Pokemon } from "./typedef";
 
 const Style = {
-    fontSize: "20px",
-    color: "#fff",
-    
-}
-
+  fontSize: "20px",
+  color: "#fff",
+};
 
 const BATTLE_MENU_OPTIONS = Object.freeze({
-    FIGHT: 'FIGHT' , 
-    RUN : 'RUN',
-    SWITCH: 'SWITCH',
-    CATCH: 'CATCH'
-} as const )
+  FIGHT: 'FIGHT',
+  RUN: 'RUN',
+  SWITCH: 'SWITCH',
+  CATCH: 'CATCH'
+} as const)
 
-export type BattleOPtions = keyof typeof BATTLE_MENU_OPTIONS;
+export type BattleOptions = keyof typeof BATTLE_MENU_OPTIONS;
 
 const ACTIVE_BATTLE_MENU = Object.freeze({
-    BATTLE_MAIN: 'BATTLE_MAIN',
-    BATTLE_MOVE_SELECT: 'BATTLE_MOVE_SELECT',
-    FIGHT: 'FIGHT',
-    RUN: 'RUN',
-    SWITCH: 'SWITCH',
-    CATCH: 'CATCH'
+  BATTLE_MAIN: 'BATTLE_MAIN',
+  BATTLE_MOVE_SELECT: 'BATTLE_MOVE_SELECT',
+  FIGHT: 'FIGHT',
+  RUN: 'RUN',
+  SWITCH: 'SWITCH',
+  CATCH: 'CATCH'
 } as const);
 
 type ActiveBattleMenu = keyof typeof ACTIVE_BATTLE_MENU;
 
 const MOVES_LIST = Object.freeze({
-    MOVE_1: 'MOVE_1',
-    MOVE_2: 'MOVE_2',
-    MOVE_3: 'MOVE_3',
-    MOVE_4: 'MOVE_4',
-
-
+  MOVE_1: 'MOVE_1',
+  MOVE_2: 'MOVE_2',
+  MOVE_3: 'MOVE_3',
+  MOVE_4: 'MOVE_4',
 });
+
 type MoveList = keyof typeof MOVES_LIST;
 
+export class BattleMenu {
+  private scene: Phaser.Scene;
+  private PlayerOptions!: Phaser.GameObjects.Container;
+  private MainMenu!: Phaser.GameObjects.Container;
+  private cursorObject!: Phaser.GameObjects.Image;
+  private textLine1!: Phaser.GameObjects.Text;
+  private selectedBattleMenuOption: BattleOptions; // this is for the player options like Fight Run Switch
+  private attackCursorObject!: Phaser.GameObjects.Image;
+  private InfoPanelMessages: string[];
+  private InfoPanelCallBack?: () => void;
+  private WaitForPlayerInput: boolean;
+  private SelectedAttackIndex: number | undefined;
+  private activeBattleMenu: ActiveBattleMenu;
+  private selectedMove: MoveList;
+  private PokemonAttackList!: Phaser.GameObjects.Container;
+  private activePlayerPokemon!: BattlePokemon;
+  private activeOpponentPokemon!: BattlePokemon; // Added property
+  private userInputCursor!: Phaser.GameObjects.Image;
+  private unserInputCursorTween!: Phaser.Tweens.Tween;
+  private switchPokemon!: boolean;
+  private runattempt!: boolean;
+  private catchAttempt!: boolean;
 
+  constructor(scene: Phaser.Scene, activePlayerPokemon: BattlePokemon, activeOpponentPokemon: BattlePokemon) {
+    this.scene = scene;
+    this.activePlayerPokemon = activePlayerPokemon;
+    this.activeOpponentPokemon = activeOpponentPokemon; // Initialize activeOpponentPokemon
 
+    this.createMainInfoPane();
+    this.createMainBattleMenu();
+    this.PokemonAttackSubMenu();
+    this.HidePokemonAttackMenu();
+    this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.FIGHT;
+    this.InfoPanelCallBack = undefined;
+    this.InfoPanelMessages = [];
+    this.WaitForPlayerInput = false;
+    this.SelectedAttackIndex = undefined
+    this.activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_MAIN;
+    this.selectedMove = MOVES_LIST.MOVE_1;
+    this.createPlayerInputCursor();
+    this.switchPokemon = false;
+    this.runattempt = false
+    this.catchAttempt=false;
+  }
 
-export class BattleMenu{
-    private scene : Phaser.Scene;
-    private PlayerOptions!: Phaser.GameObjects.Container ;
-    private MainMenu! : Phaser.GameObjects.Container;
-    private cursorObject! : Phaser.GameObjects.Image;
-    private textLine1! : Phaser.GameObjects.Text;
-    // private textLine2! : Phaser.GameObjects.Text;
-    private selectedBattleMenuOption :  BattleOPtions; // this is for the player options like Fight Run Switch 
-    private attackCursorObject! : Phaser.GameObjects.Image;
-    private InfoPanelMessages: string[] ;
-    private InfoPanelCallBack ?: ()=>void;
-    private WaitForPlayerInput: boolean ; 
-    private SelectedAttackIndex: number |undefined;
-    private activeBattleMenu: ActiveBattleMenu;
-    private selectedMove: MoveList;
-    private PokemonAttackList! : Phaser.GameObjects.Container;
-    private activePlayerPokemon!: BattlePokemon
-    private userInputCursor!: Phaser.GameObjects.Image;
-    private unserInputCursorTween !: Phaser.Tweens.Tween;
-    private switchPokemon!: boolean;
-    private runattempt!:boolean;
+  // Method to handle catch attempt
+  catchPokemonAttempt() {
+    
+   
+  }
 
+  // Method to calculate catch probability based on level and HP
+ 
+  // Modify chooseMainBattleOption to handle catch attempt
+  private chooseMainBattleOption() {
+    console.log(this.activeBattleMenu);
 
+    this.hideMainBattleMenu();
 
+    if (this.activeBattleMenu === ACTIVE_BATTLE_MENU.BATTLE_MAIN) {
+      if (this.selectedBattleMenuOption === BATTLE_MENU_OPTIONS.FIGHT) {
+        // this.hideMainBattleMenu();
+        this.ShowPokemonAttackMenu();
+        this.addText();
+        console.log(this.activeBattleMenu);
+        return;
+      }
 
-    constructor(scene: Phaser.Scene , activePlayerPokemon:BattlePokemon){
-        this.scene= scene
-        this.activePlayerPokemon = activePlayerPokemon
-        this.createMainInfoPane();
-        this.createMainBattleMenu();
-        this.PokemonAttackSubMenu();
-        this.HidePokemonAttackMenu();
-        this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.FIGHT;
-        this.InfoPanelCallBack= undefined;
-        this.InfoPanelMessages= [];
-        this.WaitForPlayerInput=false;
-        this.SelectedAttackIndex=undefined
-        this.activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_MAIN;
-        this.selectedMove = MOVES_LIST.MOVE_1;
-        this.createPlayerInputCursor();
-        this.switchPokemon=false;
-        this.runattempt=false
+      if (this.selectedBattleMenuOption === BATTLE_MENU_OPTIONS.RUN) {
+        console.log(this.selectedBattleMenuOption);
+        this.activeBattleMenu = ACTIVE_BATTLE_MENU.RUN;
+        this.runattempt = true;
+        return;
+      }
 
+      if (this.selectedBattleMenuOption === BATTLE_MENU_OPTIONS.SWITCH) {
+        console.log(this.selectedBattleMenuOption);
+        this.activeBattleMenu = ACTIVE_BATTLE_MENU.SWITCH;
+        this.switchPokemon = true;
+        return;
+      }
+
+      if (this.selectedBattleMenuOption === BATTLE_MENU_OPTIONS.CATCH) {
+        this.catchAttempt=true;
+        this.catchPokemonAttempt();
+        return;
+      }
     }
+  }
 
     //returns the attack index 0 ,1,2,3 
     get selectedAttack(){
@@ -97,6 +138,9 @@ export class BattleMenu{
     }
     get BattleMenuOption(){
         return this.selectedBattleMenuOption;
+    }
+    get isAttemptingTocatch(){
+        return this.catchAttempt;
     }
 
     get isAttemptingToSwitchPokemon (){
@@ -136,7 +180,8 @@ export class BattleMenu{
         this.HidePokemonAttackMenu();
         this.PlayerOptions.setAlpha(1);
         this.switchPokemon=false;
-        this.runattempt=false
+        this.runattempt=false;
+        this.catchAttempt=false;
 
 
     }
@@ -336,10 +381,23 @@ export class BattleMenu{
             } else if (direction === DIRECTION.DOWN) {
                 this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.SWITCH;
             }
-        } else if (currentOption === BATTLE_MENU_OPTIONS.RUN && direction === DIRECTION.LEFT) {
+        } else if (currentOption === BATTLE_MENU_OPTIONS.RUN) {
+            if(direction === DIRECTION.DOWN)
+                this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.CATCH;
+            else if(direction === DIRECTION.LEFT)
             this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.FIGHT;
-        } else if (currentOption === BATTLE_MENU_OPTIONS.SWITCH && direction === DIRECTION.UP) {
+        } else if (currentOption === BATTLE_MENU_OPTIONS.SWITCH) {
+            if(direction === DIRECTION.RIGHT)
+                this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.CATCH;
+            else if(direction === DIRECTION.UP)
             this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.FIGHT;
+        }
+        else if (currentOption === BATTLE_MENU_OPTIONS.CATCH)
+        {
+            if(direction === DIRECTION.UP)
+                this.selectedBattleMenuOption=BATTLE_MENU_OPTIONS.RUN;
+            else if(direction === DIRECTION.LEFT)
+                this.selectedBattleMenuOption= BATTLE_MENU_OPTIONS.SWITCH;
         }
         this.updateCursorPosition();
     }
@@ -358,6 +416,9 @@ export class BattleMenu{
             case BATTLE_MENU_OPTIONS.SWITCH:
                 this.cursorObject.setPosition(60, 97);
                 break;
+                case BATTLE_MENU_OPTIONS.CATCH:
+                    this.cursorObject.setPosition(220, 97);
+                    break;
             default:
                 console.warn("Unknown menu option:", this.selectedBattleMenuOption);
                 break;
@@ -483,38 +544,6 @@ export class BattleMenu{
         this.showMainBattleMenu();
         this.addText();
     }
-
-    private  chooseMainBattleOption(){
-        console.log(this.activeBattleMenu);
-        
-        this.hideMainBattleMenu();
-        if(this.activeBattleMenu===ACTIVE_BATTLE_MENU.BATTLE_MAIN){
-
-        if(this.selectedBattleMenuOption === BATTLE_MENU_OPTIONS.FIGHT ){
-            // this.hideMainBattleMenu();
-            this.ShowPokemonAttackMenu();
-            this.addText();
-            console.log(this.activeBattleMenu);
-            return; 
-
-
-        }
-        if(this.selectedBattleMenuOption === BATTLE_MENU_OPTIONS.RUN){
-            console.log(this.selectedBattleMenuOption)
-            this.activeBattleMenu = ACTIVE_BATTLE_MENU.RUN
-            this.runattempt=true;
-            return;
-        }
-        if(this.selectedBattleMenuOption === BATTLE_MENU_OPTIONS.SWITCH){
-            console.log(this.selectedBattleMenuOption)
-            this.activeBattleMenu = ACTIVE_BATTLE_MENU.SWITCH
-            this.switchPokemon=true;
-            
-            return;
-        }
-    }
-
-}
     private ChosenAttack(){
         
         this.activeBattleMenu=ACTIVE_BATTLE_MENU.BATTLE_MOVE_SELECT;

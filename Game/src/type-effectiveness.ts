@@ -10,7 +10,7 @@ export const TYPE_EFFECTIVENESS = {
     },
     WATER: {
         FIRE: 2,     // Water is super effective vs Fire
-        GROUND: 2,   // Water is super effective vs Ground
+        GROUND: 1,   // Water is super effective vs Ground
         GRASS: 1,
         ROCK: 2,
         ELECTRIC: 1
@@ -31,7 +31,7 @@ export const TYPE_EFFECTIVENESS = {
         ELECTRIC: 2, // Rock is not very effective vs Electric
     },
     GROUND: {
-        ELECTRIC: 2, // Ground is super effective vs Electric
+        ELECTRIC: 1, // Ground is super effective vs Electric
         FIRE: 1,     
         ROCK: 1,     
     },

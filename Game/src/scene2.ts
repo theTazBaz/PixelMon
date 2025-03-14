@@ -27,6 +27,7 @@ const BATTLE_STATES = Object.freeze({
     FINISHED : 'FINISHED' ,// battle finish knock out the opp
     FLEE_ATTEMPT : 'FLEE_ATTEMPT', //run away
     SWITCH_POKEMON : 'SWITCH_POKEMON',
+    CATCH_POKEMON:'CATCH_POKEMON'
 }) 
 
 export default class scene2 extends Phaser.Scene {
@@ -129,8 +130,11 @@ export default class scene2 extends Phaser.Scene {
         }); 
         //battle Machine starts here 
         this.createBattleStateMachine();
-        this.battlemenu= new BattleMenu(this , this.activePlayerPokemon);
+        this.battlemenu = new BattleMenu(this, this.activePlayerPokemon, this.activeOpponentPokemon);
         this.controls=new Controls(this);
+
+
+
         }
 
     update(){
@@ -141,7 +145,9 @@ export default class scene2 extends Phaser.Scene {
             this.battleStateMachine.currentStateName===BATTLE_STATES.PRE_BATTLE_INFO||
             this.battleStateMachine.currentStateName===BATTLE_STATES.POST_BATTLE_CHECK||
             this.battleStateMachine.currentStateName===BATTLE_STATES.FLEE_ATTEMPT||
-            this.battleStateMachine.currentStateName===BATTLE_STATES.SWITCH_POKEMON
+            this.battleStateMachine.currentStateName===BATTLE_STATES.SWITCH_POKEMON||
+            this.battleStateMachine.currentStateName===BATTLE_STATES.CATCH_POKEMON
+
         )){
             this.battlemenu.playerInput('OK');
             return ;
@@ -159,6 +165,10 @@ export default class scene2 extends Phaser.Scene {
             }
             if(this.battlemenu.isAttemptingToRun){
                 this.battleStateMachine.setState(BATTLE_STATES.FLEE_ATTEMPT);
+
+            }
+            if(this.battlemenu.isAttemptingTocatch){
+                this.battleStateMachine.setState(BATTLE_STATES.CATCH_POKEMON);
 
             }
 
@@ -340,6 +350,35 @@ export default class scene2 extends Phaser.Scene {
                 })
             }
         })
+        this.battleStateMachine.addState({
+            name : BATTLE_STATES.CATCH_POKEMON ,   
+            onEnter: ()=> {
+                const catchProbability = this.calculateCatchProbability(this.activeOpponentPokemon);
+
+                if (Math.random() < catchProbability) {
+                  // Add Pokémon to player's list
+                  this.addPokemonToPlayerList(this.activeOpponentPokemon);
+                  this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
+                    [`Caught ${this.activeOpponentPokemon.name}!`],
+                    () => {
+                      // End battle scene
+                      this.transitionNextScene();
+                      // Replace with your scene name
+                    }
+                  );
+                } else {
+                  // Pokémon flees
+                  this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
+                    [`${this.activeOpponentPokemon.name} broke free and fled!`],
+                    () => {
+                      // End battle scene
+                      this.transitionNextScene(); // Replace with your scene name
+                    }
+                  );
+                }
+                
+            } 
+        }); 
         //start state machine
         this.battleStateMachine.setState('INTRO')
     }
@@ -396,7 +435,7 @@ export default class scene2 extends Phaser.Scene {
                     let effectivenessMessage = "";
                     if (effectiveness >1) {
                         effectivenessMessage = "It's super effective!";
-                    } else if (effectiveness<=1) {
+                    } else if (effectiveness<1) {
                         effectivenessMessage = "It's not very effective...";
                     }
     
@@ -453,7 +492,7 @@ export default class scene2 extends Phaser.Scene {
                     let effectivenessMessage = "";
                     if (effectiveness > 1) {
                         effectivenessMessage = "It's super effective!";
-                    } else if (effectiveness <= 1) {
+                    } else if (effectiveness < 1) {
                         effectivenessMessage = "It's not very effective...";
                     }
     
@@ -500,4 +539,31 @@ export default class scene2 extends Phaser.Scene {
         })
     }
 
+
+    // handleSceneResume(data: Pokemon) {
+    //     this.switchingActivePokemon = true;
+    //     this.PLAYER = data; // Update the active Pokémon
+    //     this.battlemenu.updatePlayerPokemon(this.activePlayerPokemon); // Update the battle menu
+    
+    //     // Play switch animations
+    //         this.activePlayerPokemon.playSwitchAnimation(this.PLAYER, () => {
+    //         this.battleStateMachine.setState(BATTLE_STATES.BRING_OUT_PLAYER);
+    //     });
+    // }
+    private calculateCatchProbability(pokemon: BattlePokemon): number {
+        const levelFactor = 1 - (pokemon.level / 100); // Adjust this formula as needed
+        const hpFactor = 1 - (pokemon.currentHealth / pokemon.maxHealth);
+        const catchProbability = (levelFactor + hpFactor) / 2; // Adjust this formula as needed
+    
+        return catchProbability;
+      }
+    
+      // Method to add Pokémon to player's list
+      private addPokemonToPlayerList(pokemon: BattlePokemon) {
+        // Logic to add the caught Pokémon to the player's Pokémon list
+        // This might involve updating a player data structure or database
+        console.log(`Added ${pokemon.name} to player's list.`);
+      }
+    
+    
 }
