@@ -65,7 +65,7 @@ class DataManager extends Phaser.Events.EventEmitter{
     updatePokemonHP(index: number, newHp: number) {
         let team = this.getPlayerTeam();
         if (team[index]) {
-            team[index].maxHp = Math.max(0, Math.min(newHp, team[index].maxHp));
+            team[index].currentHp = Math.max(0, Math.min(newHp, team[index].maxHp));
             this.updatePlayerTeam(team);
         }
     }

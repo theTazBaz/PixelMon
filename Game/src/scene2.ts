@@ -79,15 +79,12 @@ export default class scene2 extends Phaser.Scene {
     }   
 
     create(data: { player?: any }) {
-        if (!data?.player) {
-            console.error("Player data is missing!");
-            return;
-        }
+       
         this.mainPlayer=data.player;
         console.log(data.player);
         this.team= data.player.getPokemonTeam();
         console.log(this.team);
-        this.PLAYER=this.team[0];
+        // this.PLAYER=this.team[0];
 
         //battle background 
         const battlebg = new Background(this);

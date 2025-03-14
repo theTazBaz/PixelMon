@@ -219,7 +219,7 @@ export default class scene3 extends Phaser.Scene{
         const healthBar = new HealthBar(this,70,35,240);
         console.log(pokemonDetails.name , pokemonDetails.currentHp,pokemonDetails.maxHp)
         
-        healthBar.setMeterPercentageAnimated(pokemonDetails.maxHp/pokemonDetails.currentHp,{
+        healthBar.setMeterPercentageAnimated(pokemonDetails.currentHp/pokemonDetails.maxHp,{
             duration:0,
             skipBattleAnimations : true,
         })
