@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import "./style.css";
 import { PLAYER_POKEMON_TEAM } from "./player-pokemon-list";
 import { CHARACTER_ASSET_KEYS, WORLD_ASSET_KEYS } from "./asset_keys";
+import { POKEMON_DATA } from "./pokemon-data";
 
 
 export default class scene1 extends Phaser.Scene
@@ -11,12 +12,17 @@ export default class scene1 extends Phaser.Scene
     }
     preload()
     {
-        PLAYER_POKEMON_TEAM.forEach((pokemon) => {
+        for (const pokemon of Object.values(POKEMON_DATA)) {
+            console.log(pokemon.name);
             this.load.atlas(`${pokemon.name}_front`, `src/assets/pokemon/${pokemon.name}_front.png`,`src/assets/pokemon_json/${pokemon.name}_front.json`);
-        });
-        PLAYER_POKEMON_TEAM.forEach((pokemon) => {
             this.load.atlas(`${pokemon.name}_back`, `src/assets/pokemon/${pokemon.name}_back.png`,`src/assets/pokemon_json/${pokemon.name}_back.json`);
-        });
+
+        }
+        // .forEach((pokemon) => {
+        //         });
+        // PLAYER_POKEMON_TEAM.forEach((pokemon) => {
+        //     this.load.atlas(`${pokemon.name}_back`, `src/assets/pokemon/${pokemon.name}_back.png`,`src/assets/pokemon_json/${pokemon.name}_back.json`);
+        // });
         this.load.image("startscreen","src/assets/images/startscreen.jpg");
         //pallet town data 
         this.load.image(WORLD_ASSET_KEYS.PALLET_TOWN, "src/assets/cities/level_background.png")

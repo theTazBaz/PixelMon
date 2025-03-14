@@ -73,4 +73,3 @@ class DataManager extends Phaser.Events.EventEmitter{
 
 }
 export const dataManager = new DataManager();
- 

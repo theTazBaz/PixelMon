@@ -43,9 +43,9 @@ export default class scene2 extends Phaser.Scene {
     private team !:Pokemon[];
     private mainPlayer!:Player;
 
-    keys = Object.keys(POKEMON) as Array<keyof typeof POKEMON>; 
-    randomIndex = Math.floor(Math.random() * this.keys.length); 
-    OPPONENT = this.keys[this.randomIndex];
+    keys:any ;
+    randomIndex !:number; 
+    OPPONENT:any ;
     PLAYER = PLAYER_POKEMON_TEAM[0];
 
 
@@ -55,6 +55,10 @@ export default class scene2 extends Phaser.Scene {
     init(){
         this.activePlayerAttackIndex=-1;
         this.switchingActivePokemon = false;
+        this.keys =  Object.keys(POKEMON) as Array<keyof typeof POKEMON>;
+        this.randomIndex = Math.floor(Math.random() * this.keys.length);
+        this.OPPONENT = this.keys[this.randomIndex];
+        console.log("this is init")
         
     }
 
@@ -85,7 +89,7 @@ export default class scene2 extends Phaser.Scene {
         console.log(data.player);
         this.team= data.player.getPokemonTeam();
         console.log(this.team);
-        // this.PLAYER=this.team[0];
+        this.PLAYER=this.team[0];
 
         //battle background 
         const battlebg = new Background(this);
@@ -357,24 +361,24 @@ export default class scene2 extends Phaser.Scene {
 
                 if (Math.random() < catchProbability) {
                   // Add Pokémon to player's list
-                  this.addPokemonToPlayerList(this.activeOpponentPokemon);
-                  this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
+                    this.addPokemonToPlayerList(this.activeOpponentPokemon);
+                    this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
                     [`Caught ${this.activeOpponentPokemon.name}!`],
                     () => {
                       // End battle scene
-                      this.transitionNextScene();
+                    this.transitionNextScene();
                       // Replace with your scene name
                     }
-                  );
+                );
                 } else {
                   // Pokémon flees
-                  this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
+                this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
                     [`${this.activeOpponentPokemon.name} broke free and fled!`],
                     () => {
                       // End battle scene
                       this.transitionNextScene(); // Replace with your scene name
                     }
-                  );
+                    );
                 }
                 
             } 
