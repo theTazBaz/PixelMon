@@ -378,10 +378,7 @@ export default class scene2 extends Phaser.Scene {
                     // Call takeDamage and get the effectiveness result
                     const result = this.activeOpponentPokemon.takeDamage(
                         this.activePlayerPokemon.baseAttack,
-                        attackType,
-                        () => {
-                            this.enemyAttack(); // Proceed to enemy attack after showing messages
-                        }
+                        attackType
                     );
                     const effectiveness= result[0];
                     const currentHp= result[1];
@@ -426,14 +423,12 @@ export default class scene2 extends Phaser.Scene {
             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
             if (onComplete) onComplete();
             return;
-            return;
         }
         if (this.battlemenu.isAttemptingToSwitchPokemon) {
             console.log("Skipping enemy attack due to Pokémon switch.");
             if (onComplete) onComplete();
             return;
         }
-    
     
         const enemyAttack = this.activeOpponentPokemon.attacks[1];
         const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
@@ -442,20 +437,43 @@ export default class scene2 extends Phaser.Scene {
         this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
             [`${this.activeOpponentPokemon.name} used ${enemyAttack.name}`],
             () => {
-                this.time.delayedCall(500, () => {
-                    this.activePlayerPokemon.takeDamage(
-                        this.activeOpponentPokemon.baseAttack,
+                this.time.delayedCall(1200, () => {
+                    // Call takeDamage and get the effectiveness result
+                    const result = this.activePlayerPokemon.takeDamage(
+                        this.activeOpponentPokemon.baseAttack*0.5,
                         attackType,
                         () => {
                             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
                             if (onComplete) onComplete();
                         }
                     );
+                    const effectiveness=result[0];
+    
+                    // Prepare effectiveness message
+                    let effectivenessMessage = "";
+                    if (effectiveness > 1) {
+                        effectivenessMessage = "It's super effective!";
+                    } else if (effectiveness <= 1) {
+                        effectivenessMessage = "It's not very effective...";
+                    }
+    
+                    // Show effectiveness message if applicable, then proceed
+                    if (effectivenessMessage) {
+                        this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
+                            [effectivenessMessage],
+                            () => {
+                                this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+                                if (onComplete) onComplete();
+                            }
+                        );
+                    } else {
+                        this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+                        if (onComplete) onComplete();
+                    }
                 });
             }
-        );
-
-    }
+        );
+    }
 
     private postBattleCheck(){
 
