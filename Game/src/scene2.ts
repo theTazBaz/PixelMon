@@ -42,6 +42,10 @@ export default class scene2 extends Phaser.Scene {
     private team !:Pokemon[];
     private mainPlayer!:Player;
     private opponentData!:Pokemon;
+    private callResolved: number = 0;
+    private OpponentMove: string = "";
+    private opponentTeam!: Pokemon[];
+    private isOpponentTurn:boolean =false;
     keys:any ;
     randomIndex !:number; 
     OPPONENT:any ;
@@ -87,6 +91,7 @@ export default class scene2 extends Phaser.Scene {
     }   
 
     create(data: { player?: any }) {
+        this.opponentTeam.push(this.opponentData);
 
         this.mainPlayer=data.player;
         console.log(data.player);
@@ -204,7 +209,6 @@ export default class scene2 extends Phaser.Scene {
 
             }
             
-            console.log(`Player selected ${this.battlemenu.selectedAttack}`);
 
             this.battlemenu.HidePokemonAttackMenu();
 
@@ -284,15 +288,28 @@ export default class scene2 extends Phaser.Scene {
         })
 
         this.battleStateMachine.addState({
-            name : BATTLE_STATES.ENEMY_INPUT,  
-            onEnter: ()=> {
-                
-                //pick random move or whatever
-                this.battleStateMachine.setState(BATTLE_STATES.BATTLE);
-
-                
-            }  
-        }); 
+            name: BATTLE_STATES.ENEMY_INPUT,
+            onEnter: async () => {
+                this.isOpponentTurn = true;
+                if (this.callResolved === 0) {
+                    this.callResolved = 1;
+    
+                    try {
+                        const res = await this.fetchOpponentMove(this.team, this.opponentTeam);
+                        this.OpponentMove = res?.move || this.randomMove(this.team, this.opponentTeam);
+                    } catch (err) {
+                        console.error("API call failed, choosing random move.");
+                        this.OpponentMove = this.randomMove(this.team, this.opponentTeam);
+                    } finally {
+                        this.callResolved = 0;
+                        this.isOpponentTurn = false;
+                        this.enemyAttack(() => {
+                            this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+                        });
+                    }
+                }
+            }
+        });
         this.battleStateMachine.addState({
             name : BATTLE_STATES.BATTLE ,
             onEnter: ()=> {
@@ -314,9 +331,7 @@ export default class scene2 extends Phaser.Scene {
                 
                     return;
                 }
-
                 this.playerAttack();
-
                 
             }
         })
@@ -344,8 +359,6 @@ export default class scene2 extends Phaser.Scene {
                         this.battleStateMachine.setState(BATTLE_STATES.FINISHED);
                     }
                 )
-
-                
             }
         })
 
@@ -500,61 +513,123 @@ export default class scene2 extends Phaser.Scene {
     
     
 
-    private enemyAttack(onComplete?: () => void) {
-        if (this.activeOpponentPokemon.isFainted) {
-            this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
-            if (onComplete) onComplete();
-            return;
-        }
-        if (this.battlemenu.isAttemptingToSwitchPokemon) {
-            console.log("Skipping enemy attack due to Pokémon switch.");
-            if (onComplete) onComplete();
-            return;
-        }
-    
-        const enemyAttack = this.activeOpponentPokemon.attacks[1];
-        const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
-        const attackType = attackData.find((attack: any) => attack.id === enemyAttack.id)?.type || "NORMAL";
-    
-        this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
-            [`${this.activeOpponentPokemon.name} used ${enemyAttack.name}`],
-            () => {
-                this.time.delayedCall(1200, () => {
-                    // Call takeDamage and get the effectiveness result
-                    const result = this.activePlayerPokemon.takeDamage(
-                        this.activeOpponentPokemon.baseAttack,
-                        attackType,
+//     private enemyAttack(onComplete?: () => void) {
+//         if (this.activeOpponentPokemon.isFainted) {
+//             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+//             if (onComplete) onComplete();
+//             return;
+//         }
+//         if (this.battlemenu.isAttemptingToSwitchPokemon) {
+//             console.log("Skipping enemy attack due to Pokémon switch.");
+//             if (onComplete) onComplete();
+//             return;
+//         }
+//         const enemyAttack = this.activeOpponentPokemon.attacks[1];
+//         const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
+//         const attackType = attackData.find((attack: any) => attack.id === enemyAttack.id)?.type || "NORMAL";
+//         this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
+//             [`${this.activeOpponentPokemon.name} used ${enemyAttack.name}`],
+//             () => {
+//                 this.time.delayedCall(1200, () => {
+//                     // Call takeDamage and get the effectiveness result
+//                     const result = this.activePlayerPokemon.takeDamage(
+//                         this.activeOpponentPokemon.baseAttack,
+//                         attackType,
+//                         () => {
+//                             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+//                             if (onComplete) onComplete();
+//                         }
+//                     );
+//                     const effectiveness=result[0];
+
+//                     // Prepare effectiveness message
+//                     let effectivenessMessage = "";
+//                     if (effectiveness > 1) {
+//                         effectivenessMessage = "It's super effective!";
+//                     } else if (effectiveness < 1) {
+//                         effectivenessMessage = "It's not very effective...";
+//                     }
+
+//                     // Show effectiveness message if applicable, then proceed
+//                     if (effectivenessMessage) {
+//                         this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
+//                             [effectivenessMessage],
+//                             () => {
+//                                 this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+//                                 if (onComplete) onComplete();
+//                             }
+//                         );
+//                     } else {
+//                         this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+//                         if (onComplete) onComplete();
+//                     }
+//                 });
+//             }
+// );
+// }
+
+
+
+private async enemyAttack(onComplete?: () => void) {
+    if (this.activeOpponentPokemon.isFainted) {
+        this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+        if (onComplete) onComplete();
+        return;
+    }
+
+    if (this.battlemenu.isAttemptingToSwitchPokemon) {
+        console.log("Skipping enemy attack due to Pokémon switch.");
+        if (onComplete) onComplete();
+        return;
+    }
+
+    if (!this.OpponentMove) {
+        this.OpponentMove = this.randomMove(this.team, this.opponentTeam);
+    }
+
+    const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
+    const attackDetails = attackData.find((attack: any) => attack.name === this.OpponentMove);
+
+    if (!attackDetails) {
+        console.warn(`Attack ${this.OpponentMove} not found in data! Using default.`);
+        this.OpponentMove = this.activeOpponentPokemon.attacks[0].name;
+    }
+
+    const attackType = attackDetails?.type || "NORMAL";
+    const attackPower = attackDetails?.power || this.activeOpponentPokemon.baseAttack;
+
+    this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
+        [`${this.activeOpponentPokemon.name} used ${this.OpponentMove}!`],
+        () => {
+            this.time.delayedCall(1200, () => {
+                const result = this.activePlayerPokemon.takeDamage(attackPower, attackType, () => {
+                    this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+                    if (onComplete) onComplete();
+                });
+
+                const effectiveness = result[0];
+                let effectivenessMessage = "";
+                if (effectiveness > 1) {
+                    effectivenessMessage = "It's super effective!";
+                } else if (effectiveness < 1) {
+                    effectivenessMessage = "It's not very effective...";
+                }
+
+                if (effectivenessMessage) {
+                    this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
+                        [effectivenessMessage],
                         () => {
                             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
                             if (onComplete) onComplete();
                         }
                     );
-                    const effectiveness=result[0];
-    
-                    // Prepare effectiveness message
-                    let effectivenessMessage = "";
-                    if (effectiveness > 1) {
-                        effectivenessMessage = "It's super effective!";
-                    } else if (effectiveness < 1) {
-                        effectivenessMessage = "It's not very effective...";
-                    }
-    
-                    // Show effectiveness message if applicable, then proceed
-                    if (effectivenessMessage) {
-                        this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
-                            [effectivenessMessage],
-                            () => {
-                                this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
-                                if (onComplete) onComplete();
-                            }
-                        );
-                    } else {
-                        this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
-                        if (onComplete) onComplete();
-                    }
-                });
-            }
-);
+                } else {
+                    this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
+                    if (onComplete) onComplete();
+                }
+            });
+        }
+    );
 }
     private calculateExperienceGained(opponentPokemon: BattlePokemon): number {
         // Example formula for experience gain
@@ -637,15 +712,42 @@ private postBattleCheck() {
         const hpFactor = 1 - (pokemon.currentHealth / pokemon.maxHealth);
         const catchProbability = (levelFactor + hpFactor) / 2; // Adjust this formula as needed
     
-        return 1;
+        return catchProbability;
     }
+  
     
-      // Method to add Pokémon to player's list
-    private addPokemonToPlayerList(pokemon: BattlePokemon) {
-        // Logic to add the caught Pokémon to the player's Pokémon list
-        // This might involve updating a player data structure or database
-        console.log(`Added ${pokemon.name} to player's list.`);
+    
+
+    private randomMove(team: Pokemon[], opponentTeam: Pokemon[]): string {
+        if (!this.activeOpponentPokemon || this.activeOpponentPokemon.attacks.length === 0) {
+            console.warn("Opponent has no available moves. Defaulting to 'Tackle'.");
+            return "Tackle"; // Default move if no moves are available.
+        }
+
+        // Select a random move from the opponent's available attacks
+        const randomIndex = Math.floor(Math.random() * this.activeOpponentPokemon.attacks.length);
+        return this.activeOpponentPokemon.attacks[randomIndex].name;
     }
+    async fetchOpponentMove(team1: Pokemon[], team2: Pokemon[]) {
+        try {
+            const url = new URL("http://127.0.0.1:5000/fetchOpponentMove");
+            url.searchParams.append("team1", encodeURIComponent(JSON.stringify(team1)));
+            url.searchParams.append("team2", encodeURIComponent(JSON.stringify(team2)));
+
+            const response = await fetch(url.toString(), { method: "GET" });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Error fetching opponent move:", error);
+            return null;
+        }
+    }
+
     
+
     
 }
