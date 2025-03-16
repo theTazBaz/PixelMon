@@ -27,7 +27,7 @@ export default class scene4 extends Phaser.Scene{
 
     create(){
         
-        this.cameras.main.setBounds(0,0,1280,2176);
+        this.cameras.main.setBounds(0,0,3200,2176);
         this.cameras.main.setZoom(0.8);
         // this.cameras.main.centerOn(x,y);
 
@@ -99,7 +99,7 @@ export default class scene4 extends Phaser.Scene{
             return;
         }
         
-        this.wildPokemonEncountered= Math.random()<0.2;
+        this.wildPokemonEncountered= Math.random()<0.02;
         if(this.wildPokemonEncountered){
             this.cameras.main.fadeOut(2000);
             this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{

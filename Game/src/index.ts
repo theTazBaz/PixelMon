@@ -1,3 +1,4 @@
+import { Pokemon } from "./typedef";
 
 isOpponentTurn = false //you should already have this in your current implementation
 callResolved = 0 //0 means not called, 1 means api request has been sent but not resolved yet

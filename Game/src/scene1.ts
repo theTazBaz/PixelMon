@@ -24,11 +24,11 @@ export default class scene1 extends Phaser.Scene
         // });
         this.load.image("startscreen","src/assets/images/startscreen.jpg");
         //pallet town data 
-        this.load.image(WORLD_ASSET_KEYS.PALLET_TOWN, "src/assets/cities/level_background.png")
-        this.load.tilemapTiledJSON(WORLD_ASSET_KEYS.PALLET_MAIN_LEVEL, "src/assets/cities/level.json")
-        this.load.image(WORLD_ASSET_KEYS.PALLET_COLLISION, "src/assets/cities/collision.png")
-        this.load.image(WORLD_ASSET_KEYS.PALLET_FOREGROUND, "src/assets/cities/level_foreground.png")
-        this.load.image(WORLD_ASSET_KEYS.PALLET_ENCOUNTER_ZONE, "src/assets/cities/encounter.png")
+        this.load.image(WORLD_ASSET_KEYS.PALLET_TOWN, "src/assets/cities/cities/level_background.png")
+        this.load.tilemapTiledJSON(WORLD_ASSET_KEYS.PALLET_MAIN_LEVEL, "src/assets/cities/cities/level.json")
+        this.load.image(WORLD_ASSET_KEYS.PALLET_COLLISION, "src/assets/cities/cities/collision.png")
+        this.load.image(WORLD_ASSET_KEYS.PALLET_FOREGROUND, "src/assets/cities/cities/level_foreground.png")
+        this.load.image(WORLD_ASSET_KEYS.PALLET_ENCOUNTER_ZONE, "src/assets/cities/cities/encounter.png")
         
         //loading character assets
         this.load.atlas(CHARACTER_ASSET_KEYS.PLAYER,"src/assets/player/male_sprite.png", "src/assets/player/male_sprite.json");
