@@ -61,6 +61,11 @@ export default class scene2 extends Phaser.Scene {
     }
 
     preload() {
+        for (const pokemon of Object.values(POKEMON_DATA)) {
+            this.load.atlas(`${pokemon.name}_front`, `src/assets/pokemon/${pokemon.name}_front.png`,`src/assets/pokemon_json/${pokemon.name}_front.json`);
+            this.load.atlas(`${pokemon.name}_back`, `src/assets/pokemon/${pokemon.name}_back.png`,`src/assets/pokemon_json/${pokemon.name}_back.json`);
+
+        }
         
         this.load.image("battleScene", "src/assets/images/battle_scene_bg.jpg");
         this.load.atlas(this.OPPONENT, `src/assets/pokemon/${this.OPPONENT}_front.png`,`src/assets/pokemon_json/${this.OPPONENT}_front.json`);
@@ -85,9 +90,19 @@ export default class scene2 extends Phaser.Scene {
 
         this.mainPlayer=data.player;
         console.log(data.player);
-        this.team= data.player.getPokemonTeam();
+        this.team = data.player.getPokemonTeam();
         console.log(this.team);
-        this.PLAYER=this.team[0];
+
+        // Find the first Pokémon with HP > 0
+        const firstAlivePokemon = this.team.find(pokemon => pokemon.currentHp > 0);
+        console.log("firstAlivePokemon", firstAlivePokemon);
+
+        if (firstAlivePokemon) {
+            this.PLAYER = firstAlivePokemon; // Assign the first alive Pokémon
+        } else {
+            this.PLAYER= this.team[0]
+        }
+
         console.log(this.PLAYER.currentHp);
 
         //battle background 
@@ -102,7 +117,7 @@ export default class scene2 extends Phaser.Scene {
             _pokemonDetails: {
                 PokemonId:this.PLAYER.PokemonId,
                 name: this.PLAYER.name,
-                assetKey: this.PLAYER.assetKey,
+                assetKey: `${this.PLAYER.assetKey}_back`,
                 currentHp: this.PLAYER.currentHp,
                 maxHp: this.PLAYER.maxHp,
                 attackIds: this.PLAYER.attackIds,
@@ -236,7 +251,6 @@ export default class scene2 extends Phaser.Scene {
                     ()=>{
                         this.battleStateMachine.setState(BATTLE_STATES.BRING_OUT_PLAYER);
                         //wait for text animation to complete 
-
                     }
                 )               
             }
@@ -350,11 +364,17 @@ export default class scene2 extends Phaser.Scene {
                     })
                     return;
                 }
-
-                this.scene.launch("scene3", {battle:this, player: this.mainPlayer });
+                console.log("in battle scene ", this.team);
+                this.scene.launch("scene3", {battle:this, player: this.mainPlayer, activepokemon : this.PLAYER });
                 this.events.once("pokemonSwitched", (newPokemon:Pokemon)=>{
                     this.switchToPokemon(newPokemon);
                 })
+                this.events.once("switchCanceled", () => {
+                    this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(["No Pokemon Selected"], () => {
+                        this.battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT);
+                    });
+                });
+                
             }
         })
         this.battleStateMachine.addState({
@@ -368,6 +388,7 @@ export default class scene2 extends Phaser.Scene {
             
                     // Check if team is not full (assuming max 6 Pokémon in a team)
                     if (playerTeam.length < 6) {
+                        this.opponentData.currentHp=this.activeOpponentPokemon.currentHealth;
                         // Add new Pokémon to the team
                         
                         playerTeam.push(this.opponentData); 

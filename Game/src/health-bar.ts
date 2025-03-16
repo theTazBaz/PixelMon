@@ -12,11 +12,13 @@ export class HealthBar  {
     private leftCapShadow!: Phaser.GameObjects.Image;
     private middleShadow!: Phaser.GameObjects.Image;
     private rightCapShadow!: Phaser.GameObjects.Image;
+    private ShadowWidth!:number;
     
-    constructor(scene: Scene, x: number, y: number , width: number = 360 * 0.75 ) {
+    constructor(scene: Scene, x: number, y: number , width: number = 360 * 0.75,shadowWidth= 360 * 0.75) {
         this.scene = scene;
         this.fullWidth = width; // Scaled width of the health bar
         this.scaleY = 0.65; // Vertical scaling factor
+        this.ShadowWidth=shadowWidth
 
         // Create a container for the health bar parts
         this.healthBarContainer = this.scene.add.container(x, y);
@@ -69,7 +71,7 @@ export class HealthBar  {
             .image(this.leftCapShadow.x + this.leftCapShadow.width, y, "midshadow")
             .setOrigin(0, 0.5)
             .setScale(1, this.scaleY);
-        this.middleShadow.displayWidth = this.fullWidth; // Set shadow width to match full health bar width
+        this.middleShadow.displayWidth = this.ShadowWidth; // Set shadow width to match full health bar width
     
         // Right shadow
         this.rightCapShadow = this.scene.add
@@ -111,35 +113,44 @@ export class HealthBar  {
     
     setMeterPercentageAnimated(
         percent: number,
-        options: { duration?: number; skipBattleAnimations?:boolean  , callback?: () => void } = {}
+        options: { duration?: number; skipBattleAnimations?: boolean; callback?: () => void } = {}
     ): void {
         const width = this.fullWidth * percent;
     
         if (options?.skipBattleAnimations) {
             this.setMeterPercentage(percent);
             if (options?.callback) {
-            options.callback();
+                options.callback();
             }
             return;
         }
+    
         this.scene.tweens.add({
             targets: this.middle,
             displayWidth: width,
             duration: options.duration || 1000,
             ease: Phaser.Math.Easing.Sine.Out,
             onUpdate: () => {
-                // Update right cap position dynamically
+                // Move right cap as the width decreases
                 this.rightCap.x = this.middle.x + this.middle.displayWidth;
     
-                // Log for debugging
+                // Handle visibility changes in the right order:
+                if (width <= 5) {  // If the bar is almost gone
+                    this.rightCap.visible = false; // Hide right cap first
+                } 
                 
-                
+                if (width <= 0) {  // When it's almost zero, hide left cap last
+                    this.leftCap.visible = false;
+                } else {
+                    this.leftCap.visible = true;
+                }
             },
             onComplete: () => {
                 if (options.callback) options.callback();
             },
         });
     }
+    
 
     hideHealthBar(){
 

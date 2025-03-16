@@ -4,7 +4,8 @@ import {Pokemon , BattlePokemonConfig , Coordinate ,Attack} from "./typedef"
 import { DATA_ASSET_KEYS } from "./asset_keys";
 import { TYPE_EFFECTIVENESS } from "./type-effectiveness";
 import { dataManager } from "./data_manager";
-import { BattleMenu } from "./battle-menu";
+// import { BattleMenu } from "./battle-menu";
+
 export class BattlePokemon {
     protected _scene: Phaser.Scene;
     protected _pokemonDetails: Pokemon;
@@ -95,13 +96,16 @@ export class BattlePokemon {
         if (this.currentHealth < 0) {
             this.currentHealth = 0;
         }
-    
+        console.log("in battle pokemon ",this.currentHealth)
         this._healthBar.setMeterPercentageAnimated(this.currentHealth / this.maxHealth, {
             callback: callback
         });
     
         // Update the health bar text
         this.setHealthBarText();
+        this.attackAnimation(() => {
+            console.log(`${this.name} finished attacking!`);
+        });
         return [effectiveness, this.currentHealth] ;
     }
     
@@ -134,7 +138,7 @@ export class BattlePokemon {
 
 
 createHealthBarComponents() {
-    this._healthBar = new HealthBar(this._scene,34*0.75,34*0.75); 
+    this._healthBar = new HealthBar(this._scene,34*0.75,34*0.75,(this.currentHealth/this.maxHealth)*360*0.75); 
 
     this._pokemonNameText = this._scene.add.text(
         30*0.75,
@@ -211,6 +215,7 @@ createHealthBarComponents() {
     switchPokemon(pokemon:Pokemon){
         this._pokemonDetails = pokemon;
         this.currentHealth = this._pokemonDetails.currentHp;
+        console.log("in switchPokemon in battle pokemon ", this.currentHealth);
         this.maxHealth= this._pokemonDetails.maxHp;
         this._healthBar.setMeterPercentageAnimated(this.currentHealth/this.maxHealth,{
             skipBattleAnimations: true
@@ -296,27 +301,42 @@ createHealthBarComponents() {
       private calculateExperienceToNextLevel(level: number): number {
         // Simple formula for demonstration; adjust as needed
         return Math.floor(100 * Math.pow(level, 1.5));
-      }
+    }
     
       // Getters for level and experience
-      get level(): number {
+    get level(): number {
         return this._level;
-      }
-    
-      get experience(): number {
-        return this._experience;
-      }
-    
-      get experienceToNextLevel(): number {
-        return this._experienceToNextLevel;
-      }
-
-      updateLevelText() {
-        if (this._pokemonLevelText) {
-          this._pokemonLevelText.setText(`Lvl ${this.level}`);
-        }
-      }
     }
+    
+    get experience(): number {
+        return this._experience;
+    }
+    
+    get experienceToNextLevel(): number {
+        return this._experienceToNextLevel;
+    }
+
+    updateLevelText() {
+        if (this._pokemonLevelText) {
+            this._pokemonLevelText.setText(`Lvl ${this.level}`);
+        }
+    }
+
+    attackAnimation(callback?: () => void): void {
+        this._scene.tweens.add({
+            targets: this._phaserGameObject,
+            alpha: { from: 1, to: 0 }, // Flicker effect
+            duration: 100,
+            repeat: 4, // 4 flickers = 5 flashes
+            yoyo: true,
+            ease: "Linear",
+            onComplete: () => {
+                if (callback) callback(); // Call callback after animation
+            },
+        });
+    }
+    
+}
     
 
 

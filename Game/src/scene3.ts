@@ -39,6 +39,7 @@ export default class scene3 extends Phaser.Scene{
     private battleScene !: scene2;
     private player !:Player;
     private pokemonTeam!:Pokemon[];
+    private currentPokemon!:Pokemon;
     constructor(){
         super("scene3");
     }
@@ -68,6 +69,7 @@ export default class scene3 extends Phaser.Scene{
             this.pokemonTeam = this.player.getPokemonTeam();
             console.log(this.pokemonTeam) // Get Pokémon team
         }
+
         this.battleScene= data.battle;
         this.cameras.main.setBackgroundColor('#000000'); 
 
@@ -102,29 +104,45 @@ export default class scene3 extends Phaser.Scene{
     }
 
     update(){
-        if(Phaser.Input.Keyboard.JustDown(this.cursorKeys.shift)){
+        if (Phaser.Input.Keyboard.JustDown(this.cursorKeys.shift)) {
+            this.InfoText.setText("Returning...");
+        
+            // Notify the battle scene that the player canceled the switch
+            this.battleScene.events.emit("switchCanceled");
+        
+            // Resume the battle scene and stop the switch scene
+            this.scene.stop();
+            return;
+        }
+        
             
-                // this.goBackToPrevScene();
-                return ;
-            }
         
         const wasEnterKeyPressed = Phaser.Input.Keyboard.JustDown(this.enterKey);
         
-        if(wasEnterKeyPressed){
-            if(this.selectedPokemonIndex===-1){
-                // this.goBackToPrevScene(false);
-                return ;
+        if (wasEnterKeyPressed) {
+            if (this.selectedPokemonIndex === -1) {
+                return; // Go back logic
             }
-            console.log(this.selectedPokemonIndex, this.pokemonTeam.length);
-
+        
             const selectedPokemon = this.pokemonTeam[this.selectedPokemonIndex];
+        
+            // Prevent selecting fainted Pokémon
+            if (selectedPokemon.currentHp === 0) {
+                this.InfoText.setText(`${selectedPokemon.name.toLocaleUpperCase()} has fainted! Choose another Pokémon.`);
+                return;
+            }
+        
             selectedPokemon.assetKey = `${selectedPokemon.name}_back`;
             this.battleScene.events.emit("pokemonSwitched", selectedPokemon);
             this.scene.stop();
-            return;}
-            if (this.cursorKeys === undefined) {
-                return DIRECTION.NONE;
-            }
+            return;
+        }
+        
+        // Prevent errors if `cursorKeys` is undefined
+        if (this.cursorKeys === undefined) {
+            return DIRECTION.NONE;
+        }
+        
 
             let selectedDirection :Direction= DIRECTION.NONE;
                     if(Phaser.Input.Keyboard.JustDown(this.cursorKeys.left)){
@@ -218,7 +236,7 @@ export default class scene3 extends Phaser.Scene{
         pokemonSprite.setScale(2)
         pokemonSprite.play(`${pokemonDetails.name}_front`);
         
-        const healthBar = new HealthBar(this,70,35,240);
+        const healthBar = new HealthBar(this,70,35,240,240);
         console.log(pokemonDetails.name , pokemonDetails.currentHp,pokemonDetails.maxHp)
         
         healthBar.setMeterPercentageAnimated(pokemonDetails.currentHp/pokemonDetails.maxHp,{
@@ -258,6 +276,15 @@ export default class scene3 extends Phaser.Scene{
                 
             }
         );
+        const HP = this.add.text(
+            443 ,
+            90 ,
+            `${pokemonDetails.currentHp}/${pokemonDetails.maxHp}`,
+            {
+                color: '#000000',
+                fontSize: '15px',
+            }
+        ).setOrigin(1, 0);
 
 
 
@@ -267,6 +294,7 @@ export default class scene3 extends Phaser.Scene{
                         PokemonName, 
                         pokemonHPText,
                         pokemonLevelText,
+                        HP,
                         healthBar.container    
                     ]);
         return container;
