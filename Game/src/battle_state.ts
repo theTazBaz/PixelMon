@@ -53,7 +53,7 @@ export class StateMachine{
         const methodName = "setState ";
 
         if(!this.states.has(name)){
-            console.warn(`[${StateMachine.name}-${this.id} : ${methodName}]tried to change to unknown `);
+            // console.warn(`[${StateMachine.name}-${this.id} : ${methodName}]tried to change to unknown `);
             return ; 
         }
 
@@ -66,12 +66,12 @@ export class StateMachine{
 
         }
         this.isChangingState = true ; 
-        console.log (`[${StateMachine.name}-${this.id} : ${methodName}] change from ${this.currentState?.name ?? 'none'} to ${name} `);
+        // console.log (`[${StateMachine.name}-${this.id} : ${methodName}] change from ${this.currentState?.name ?? 'none'} to ${name} `);
 
         this.currentState = this.states.get(name);
 
         if( this.currentState?.onEnter){
-            console.log (`[${StateMachine.name}-${this.id} : ${methodName}] ${this.currentState.name} on enter invoked`);
+            // console.log (`[${StateMachine.name}-${this.id} : ${methodName}] ${this.currentState.name} on enter invoked`);
             this.currentState.onEnter();
         }
         

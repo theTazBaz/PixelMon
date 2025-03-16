@@ -41,6 +41,7 @@ export default class scene2 extends Phaser.Scene {
     private switchingActivePokemon !:boolean;
     private team !:Pokemon[];
     private mainPlayer!:Player;
+    private opponentData!:Pokemon;
     keys:any ;
     randomIndex !:number; 
     OPPONENT:any ;
@@ -114,20 +115,20 @@ export default class scene2 extends Phaser.Scene {
 
         this.activePlayerPokemon.hidePokemon();
 
-        const opponentData = POKEMON_DATA[this.OPPONENT as keyof typeof POKEMON_DATA];
+        this.opponentData = POKEMON_DATA[this.OPPONENT as keyof typeof POKEMON_DATA];
         this.activeOpponentPokemon = new enemyPokemon({
             scene: this,
             _pokemonDetails: {
-                PokemonId:opponentData.PokemonId,
+                PokemonId:this.opponentData.PokemonId,
                 name: this.OPPONENT,
                 assetKey: this.OPPONENT,
-                assetFrame:opponentData.assetFrame,
-                currentHp: opponentData.maxHp,
-                maxHp: opponentData.maxHp,
-                attackIds: opponentData.attackIds,
-                baseAttack: opponentData.baseAttack,
-                type: opponentData.type,
-                currentLevel:opponentData.currentLevel
+                assetFrame:this.opponentData.assetFrame,
+                currentHp: this.opponentData.maxHp,
+                maxHp: this.opponentData.maxHp,
+                attackIds: this.opponentData.attackIds,
+                baseAttack: this.opponentData.baseAttack,
+                type: this.opponentData.type,
+                currentLevel:this.opponentData.currentLevel
             }
         }); 
         //battle Machine starts here 
@@ -354,32 +355,47 @@ export default class scene2 extends Phaser.Scene {
         })
         this.battleStateMachine.addState({
             name : BATTLE_STATES.CATCH_POKEMON ,   
-            onEnter: ()=> {
+            onEnter: () => {
                 const catchProbability = this.calculateCatchProbability(this.activeOpponentPokemon);
-
+            
                 if (Math.random() < catchProbability) {
-                  // Add Pokémon to player's list
-                    this.addPokemonToPlayerList(this.activeOpponentPokemon);
+                    // Get current team from DataManager
+                    const playerTeam = dataManager.getPlayerTeam();
+            
+                    // Check if team is not full (assuming max 6 Pokémon in a team)
+                    if (playerTeam.length < 6) {
+                        // Add new Pokémon to the team
+                        
+                        playerTeam.push(this.opponentData); 
+
+                        dataManager.updatePlayerTeam(playerTeam);
+                    } else {
+                        this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
+                            ["Team is Full"],
+                            () => {
+                                // End battle scene
+                                this.transitionNextScene();
+                            }
+                        );        }
+            
                     this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
-                    [`Caught ${this.activeOpponentPokemon.name}!`],
-                    () => {
-                      // End battle scene
-                    this.transitionNextScene();
-                      // Replace with your scene name
-                    }
-                );
+                        [`Caught ${this.activeOpponentPokemon.name}!`],
+                        () => {
+                            // End battle scene
+                            this.transitionNextScene();
+                        }
+                    );
                 } else {
-                  // Pokémon flees
-                this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
-                    [`${this.activeOpponentPokemon.name} broke free and fled!`],
-                    () => {
-                      // End battle scene
-                      this.transitionNextScene(); // Replace with your scene name
-                    }
+                    // Pokémon flees
+                    this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
+                        [`${this.activeOpponentPokemon.name} broke free and fled!`],
+                        () => {
+                            // End battle scene
+                            this.transitionNextScene();
+                        }
                     );
                 }
-                
-            } 
+            }
         }); 
         //start state machine
         this.battleStateMachine.setState('INTRO')
@@ -516,26 +532,54 @@ export default class scene2 extends Phaser.Scene {
 );
 }
 
-    private postBattleCheck(){
+private postBattleCheck() {
+    if (this.activeOpponentPokemon.isFainted) {
+        this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
+            [`Wild ${this.activeOpponentPokemon.name} Fainted`, `${this.activePlayerPokemon.name} gained Experience`],
+            () => {
+                this.battleStateMachine.setState(BATTLE_STATES.FINISHED);
+            }
+        );
+        return;
+    }
 
-        if(this.activeOpponentPokemon.isFainted){
-            this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput([`Wild ${this.activeOpponentPokemon.name} Fainted `,`${this.activePlayerPokemon.name} gained Experience`],
-                ()=>{
+    if (this.activePlayerPokemon.isFainted) {
+        const hasPokemon = this.team.some((pokemonInTeam)=>{
+            return (
+                pokemonInTeam.PokemonId!== this.PLAYER.PokemonId && pokemonInTeam.currentHp >0
+            )
+        })
+
+        if (hasPokemon) {
+            // Go to Switch Pokémon state
+            this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
+                [`${this.activePlayerPokemon.name} Fainted.`,` Choose another Pokémon!`],
+                () => {
+                    this.battleStateMachine.setState(BATTLE_STATES.SWITCH_POKEMON);
+                }
+            );
+        } else {
+            // No Pokémon left, player loses the battle
+            this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
+                [`${this.activePlayerPokemon.name} Fainted`, "You ran to safety!"],
+                () => {
                     this.battleStateMachine.setState(BATTLE_STATES.FINISHED);
+                }
+            );
+        }
+        return;
+    }
 
-                    })
-            return ;}
-    if(this.activePlayerPokemon.isFainted){
-        this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput([` ${this.activePlayerPokemon.name} Fainted `, "You running to safety"],
-            ()=>{
-                this.battleStateMachine.setState(BATTLE_STATES.FINISHED);})
-            return ;}
-            this.battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT);}
+    this.battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT);
+}
 
     
 
     private transitionNextScene(){
         this.cameras.main.fadeOut(2600,0 ,0 ,0) ;
+        this.team.forEach(pokemon => {
+            console.log(`${pokemon.name}: ${pokemon.currentHp} HP`);
+        });
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{
             this.scene.start("scene4");
         })
@@ -548,7 +592,7 @@ export default class scene2 extends Phaser.Scene {
         const hpFactor = 1 - (pokemon.currentHealth / pokemon.maxHealth);
         const catchProbability = (levelFactor + hpFactor) / 2; // Adjust this formula as needed
     
-        return catchProbability;
+        return 1;
     }
     
       // Method to add Pokémon to player's list

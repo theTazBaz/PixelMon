@@ -17,9 +17,9 @@ export class BattlePokemon {
     public type: string;
     protected _healthBarText!: Phaser.GameObjects.Text;
     private _level: number;
-  private _experience: number;
-  private _experienceToNextLevel: number;
-  private _pokemonLevelText!: Phaser.GameObjects.Text;
+    private _experience: number;
+    private _experienceToNextLevel: number;
+    private _pokemonLevelText!: Phaser.GameObjects.Text;
 
 
     constructor(config: BattlePokemonConfig, position: Coordinate ) {
@@ -30,8 +30,8 @@ export class BattlePokemon {
         this.pokemonAttacks = [];
         this.type = this._pokemonDetails.type; 
         this._level = config._pokemonDetails.currentLevel || 1;
-    this._experience = 0; // Initialize experience to 0
-    this._experienceToNextLevel = this.calculateExperienceToNextLevel(this._level);
+        this._experience = 0; // Initialize experience to 0
+        this._experienceToNextLevel = this.calculateExperienceToNextLevel(this._level);
 
     
 
@@ -107,9 +107,9 @@ export class BattlePokemon {
         // Get the effectiveness table for the attacking type
         const attackTypeTable = TYPE_EFFECTIVENESS[attackType as keyof typeof TYPE_EFFECTIVENESS];
         
-        console.log('Attack Type:', attackType);
-        console.log('Defending Type:', this.type);
-        console.log('Attack Type Table:', attackTypeTable);
+        // console.log('Attack Type:', attackType);
+        // console.log('Defending Type:', this.type);
+        // console.log('Attack Type Table:', attackTypeTable);
         
         if (!attackTypeTable) {
             console.log('No effectiveness table found for attack type, returning 1');
@@ -118,12 +118,13 @@ export class BattlePokemon {
 
         // Look up the effectiveness against the defending type
         const effectiveness = attackTypeTable[this.type as keyof typeof TYPE_EFFECTIVENESS[keyof typeof TYPE_EFFECTIVENESS]];
-        console.log('Calculated Effectiveness:', effectiveness);
+        // console.log('Calculated Effectiveness:', effectiveness);
         
         return effectiveness ?? 1; // Return 1 if no specific effectiveness is defined
     }
 
     setHealthBarText() {
+        
         if (this._healthBarText) {
             this._healthBarText.setText(`${this.currentHealth}/${this.maxHealth}`);
         }
@@ -148,10 +149,10 @@ createHealthBarComponents() {
         26 * 0.75,
         `Lvl ${this._pokemonDetails.currentLevel}`,
         {
-          color: "#000000",
-          fontSize: "16px",
+            color: "#000000",
+            fontSize: "16px",
         }
-      );
+        );
 
     const pokemonHPText = this._scene.add.text(
         30*0.75,
@@ -175,6 +176,7 @@ createHealthBarComponents() {
             fontSize: '15px',
         }
     ).setOrigin(1, 0);
+    console.log("in battle pokemon HP ", this.currentHealth);
     
     
 

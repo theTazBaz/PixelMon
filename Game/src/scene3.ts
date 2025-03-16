@@ -65,7 +65,8 @@ export default class scene3 extends Phaser.Scene{
         console.log(data.player);
         if (data?.player) {
             this.player = data.player; // Store reference to player
-            this.pokemonTeam = this.player.getPokemonTeam(); // Get Pokémon team
+            this.pokemonTeam = this.player.getPokemonTeam();
+            console.log(this.pokemonTeam) // Get Pokémon team
         }
         this.battleScene= data.battle;
         this.cameras.main.setBackgroundColor('#000000'); 
@@ -87,6 +88,7 @@ export default class scene3 extends Phaser.Scene{
         this.updateInfoContainerText();
 
         this.pokemonTeam.forEach((pokemon, index)=>{
+            console.log(pokemon);
             const isEven = index%2 ==0 
             const x = isEven? POKEMON_POSITIONS.EVEN.x :POKEMON_POSITIONS.ODD.x;
             const y =(isEven? POKEMON_POSITIONS.EVEN.y: POKEMON_POSITIONS.ODD.y) + POKEMON_POSITIONS.increment* Math.floor(index/2);
