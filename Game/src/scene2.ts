@@ -109,7 +109,9 @@ export default class scene2 extends Phaser.Scene {
                 baseAttack: this.PLAYER.baseAttack,
                 type: this.PLAYER.type,
                 assetFrame: this.PLAYER.assetFrame,
-                currentLevel: this.PLAYER.currentLevel
+                currentLevel: this.PLAYER.currentLevel,
+                experience:this.PLAYER.experience,
+                catchRate:this.PLAYER.catchRate
             },
         });
 
@@ -128,7 +130,9 @@ export default class scene2 extends Phaser.Scene {
                 attackIds: this.opponentData.attackIds,
                 baseAttack: this.opponentData.baseAttack,
                 type: this.opponentData.type,
-                currentLevel:this.opponentData.currentLevel
+                currentLevel:this.opponentData.currentLevel,
+                experience:this.opponentData.experience,
+                catchRate:this.opponentData.catchRate
             }
         }); 
         //battle Machine starts here 
@@ -531,15 +535,37 @@ export default class scene2 extends Phaser.Scene {
             }
 );
 }
+    private calculateExperienceGained(opponentPokemon: BattlePokemon): number {
+        // Example formula for experience gain
+        const experienceGained = Math.floor(opponentPokemon.level * 1000);
+        return experienceGained;
+    }
 
 private postBattleCheck() {
     if (this.activeOpponentPokemon.isFainted) {
+        const experienceGained = this.calculateExperienceGained(this.activeOpponentPokemon);
+        const prevlevel=this.activePlayerPokemon.level;
+        this.activePlayerPokemon.addExperience(experienceGained);
+    
+        if (this.activePlayerPokemon.level > prevlevel) {
+            this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
+            [
+                `Wild ${this.activeOpponentPokemon.name} Fainted `,
+                `${this.activePlayerPokemon.name} gained Experience`,
+                `${this.activePlayerPokemon.name} leveled up to level ${this.activePlayerPokemon.level}!`,
+            ],
+            () => {
+                this.battleStateMachine.setState(BATTLE_STATES.FINISHED);
+            }
+            );
+        } else {
         this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
-            [`Wild ${this.activeOpponentPokemon.name} Fainted`, `${this.activePlayerPokemon.name} gained Experience`],
+            [`Wild ${this.activeOpponentPokemon.name} Fainted `, `${this.activePlayerPokemon.name} gained Experience`],
             () => {
                 this.battleStateMachine.setState(BATTLE_STATES.FINISHED);
             }
         );
+        }
         return;
     }
 
@@ -572,8 +598,6 @@ private postBattleCheck() {
 
     this.battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT);
 }
-
-    
 
     private transitionNextScene(){
         this.cameras.main.fadeOut(2600,0 ,0 ,0) ;

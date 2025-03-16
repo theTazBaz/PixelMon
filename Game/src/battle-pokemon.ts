@@ -3,6 +3,8 @@ import { HealthBar } from "./health-bar";
 import {Pokemon , BattlePokemonConfig , Coordinate ,Attack} from "./typedef"
 import { DATA_ASSET_KEYS } from "./asset_keys";
 import { TYPE_EFFECTIVENESS } from "./type-effectiveness";
+import { dataManager } from "./data_manager";
+import { BattleMenu } from "./battle-menu";
 export class BattlePokemon {
     protected _scene: Phaser.Scene;
     protected _pokemonDetails: Pokemon;
@@ -254,12 +256,24 @@ createHealthBarComponents() {
 
     addExperience(experienceGained: number) {
         this._experience += experienceGained;
-    
+      
         // Check if the Pokémon should level up
         if (this._experience >= this._experienceToNextLevel) {
           this.levelUp();
         }
+      
+        // Update experience in data manager
+        this.updateExperienceInDataManager();
       }
+
+      private updateExperienceInDataManager() {
+        const playerTeam = dataManager.getPlayerTeam();
+        const index = playerTeam.findIndex(p => p.name === this.name);
+      
+        if (index !== -1) {
+          dataManager.updatePokemonExperience(index, this._experience, this._level);
+        }
+    }
     
       // Method to level up the Pokémon
       private levelUp() {
@@ -273,7 +287,7 @@ createHealthBarComponents() {
     
         // Update stats (for simplicity, just increase max HP and base attack)
         this.maxHealth += levelsGained * 5; // Example increase
-    
+        
         console.log(`Pokémon leveled up to level ${this._level}!`);
   this.updateLevelText();
       }
