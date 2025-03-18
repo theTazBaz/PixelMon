@@ -1,4 +1,4 @@
-import Phaser, { AUTO } from "phaser";
+import Phaser from "phaser";
 import { HealthBar } from "./health-bar";
 import {Pokemon , BattlePokemonConfig , Coordinate ,Attack} from "./typedef"
 import { DATA_ASSET_KEYS } from "./asset_keys";
@@ -23,7 +23,7 @@ export class BattlePokemon {
     private _experience: number;
     private _experienceToNextLevel: number;
     private _pokemonLevelText!: Phaser.GameObjects.Text;
-    protected evolveTo: string;
+    protected evolveTo: string | null;
     protected evolutionLevel: number | null;
 
 
@@ -339,7 +339,13 @@ createHealthBarComponents() {
             },
         });
     }
-    
+
+    private evolvePokemon() {
+        if(this.evolutionLevel===this._level)
+        {
+            
+        }
+    }
 }
     
 

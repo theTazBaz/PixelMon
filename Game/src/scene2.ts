@@ -133,9 +133,7 @@ export default class scene2 extends Phaser.Scene {
                 assetFrame: this.PLAYER.assetFrame,
                 currentLevel: this.PLAYER.currentLevel,
                 experience:this.PLAYER.experience,
-                catchRate:this.PLAYER.catchRate,
-                evolvesTo: this.PLAYER.evolvesTo,
-                evolutionLevel: this.PLAYER.evolutionLevel
+                catchRate:this.PLAYER.catchRate
             },
         });
 
@@ -169,9 +167,7 @@ export default class scene2 extends Phaser.Scene {
                     type: this.opponentData.type,
                     currentLevel: this.opponentData.currentLevel,
                     experience: this.opponentData.experience,
-                    catchRate: this.opponentData.catchRate,
-                    evolvesTo: this.opponentData.evolvesTo,
-                    evolutionLevel: this.opponentData.evolutionLevel
+                    catchRate: this.opponentData.catchRate
                 }
             });
         }
@@ -823,27 +819,6 @@ private postBattleCheck() {
         }
     }
 
-
-    // private counter: number = 0;
-    // private pokdataloop: number = 0;
-    // private evolvePokemon() {
-    //     if(this.activePlayerPokemon.level===this.PLAYER.evolutionLevel)
-    //         {
-    //     while(this.counter<this.team.length)
-    //     {
-            
-    //         if(this.team[this.counter]===this.PLAYER)
-    //         {
-    //             break;
-    //         }
-    //         this.counter++;
-    //     }
-    //     const pokemonIndex = Object.keys(POKEMON_DATA).findIndex(
-    //         (key) => POKEMON_DATA[key].name === this.PLAYER.evolvesTo
-    //       );
-    //     this.team[this.counter]=POKEMON_DATA.[this.PLAYER.evolvesTo];
-    // }
-    //}
     
 
     

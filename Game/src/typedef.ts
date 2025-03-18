@@ -11,8 +11,6 @@ export interface Pokemon {
    type: string;
    catchRate: number;
    experience: number; // Added experience property
-   evolvesTo: string ;
-   evolutionLevel: number | null;
    level?: number; // Make this optional
    spriteKeyFront?: string; // Make this optional
    spriteKeyBack?: string; // Make this optional
