@@ -62,6 +62,7 @@ export class BattleMenu {
   private switchPokemon!: boolean;
   private runattempt!: boolean;
   private catchAttempt!: boolean;
+  private catchText!: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene, activePlayerPokemon: BattlePokemon, activeOpponentPokemon: BattlePokemon) {
     this.scene = scene;
@@ -321,13 +322,18 @@ export class BattleMenu {
             this.scene.add.text(70,35 , BATTLE_MENU_OPTIONS.FIGHT, Style),
             this.scene.add.text(230,35 , BATTLE_MENU_OPTIONS.RUN, Style),
             this.scene.add.text(70,90 , BATTLE_MENU_OPTIONS.SWITCH, Style ),
-            this.scene.add.text(230,90 , BATTLE_MENU_OPTIONS.CATCH, Style ),
+            this.catchText = this.scene.add.text(230,90 , BATTLE_MENU_OPTIONS.CATCH, Style ),
             this.cursorObject,
         ])        
         this.hideMainBattleMenu();
         
     }
     
+    hideCatch() {
+        this.catchText.setAlpha(0);
+    }
+    
+
     private PokemonAttackSubMenu(){
 
         const attackNames :string[] = [];
@@ -371,36 +377,54 @@ export class BattleMenu {
 
 
     private updateSelectedBattleMenuOptions(direction: Direction) {
-
         const currentOption = this.selectedBattleMenuOption;
-        if(this.activeBattleMenu===ACTIVE_BATTLE_MENU.BATTLE_MAIN){
-
-        if (currentOption === BATTLE_MENU_OPTIONS.FIGHT) {
-            if (direction === DIRECTION.RIGHT) {
-                this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.RUN;
-            } else if (direction === DIRECTION.DOWN) {
-                this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.SWITCH;
+    
+        if (this.activeBattleMenu === ACTIVE_BATTLE_MENU.BATTLE_MAIN) {
+            if (currentOption === BATTLE_MENU_OPTIONS.FIGHT) {
+                if (direction === DIRECTION.RIGHT) {
+                    if (this.catchText.alpha === 0) { // If Catch is hidden, skip it
+                        this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.SWITCH;
+                    } else {
+                        this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.RUN;
+                    }
+                } else if (direction === DIRECTION.DOWN) {
+                    this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.SWITCH;
+                }
+            } else if (currentOption === BATTLE_MENU_OPTIONS.RUN) {
+                if (direction === DIRECTION.DOWN) {
+                    if (this.catchText.alpha === 0) { // If Catch is hidden, skip it
+                        // Handle skipping or another action
+                    } else {
+                        this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.CATCH;
+                    }
+                } else if (direction === DIRECTION.LEFT) {
+                    this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.FIGHT;
+                }
+            } else if (currentOption === BATTLE_MENU_OPTIONS.SWITCH) {
+                if (direction === DIRECTION.RIGHT) {
+                    if (this.catchText.alpha === 0) { // If Catch is hidden, skip it
+                        // Handle skipping or another action
+                    } else {
+                        this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.CATCH;
+                    }
+                } else if (direction === DIRECTION.UP) {
+                    this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.FIGHT;
+                }
+            } else if (currentOption === BATTLE_MENU_OPTIONS.CATCH) {
+                if (this.catchText.alpha === 0) { // If Catch is hidden, skip it
+                    // Handle skipping or another action
+                } else {
+                    if (direction === DIRECTION.UP) {
+                        this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.RUN;
+                    } else if (direction === DIRECTION.LEFT) {
+                        this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.SWITCH;
+                    }
+                }
             }
-        } else if (currentOption === BATTLE_MENU_OPTIONS.RUN) {
-            if(direction === DIRECTION.DOWN)
-                this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.CATCH;
-            else if(direction === DIRECTION.LEFT)
-            this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.FIGHT;
-        } else if (currentOption === BATTLE_MENU_OPTIONS.SWITCH) {
-            if(direction === DIRECTION.RIGHT)
-                this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.CATCH;
-            else if(direction === DIRECTION.UP)
-            this.selectedBattleMenuOption = BATTLE_MENU_OPTIONS.FIGHT;
+            this.updateCursorPosition();
         }
-        else if (currentOption === BATTLE_MENU_OPTIONS.CATCH)
-        {
-            if(direction === DIRECTION.UP)
-                this.selectedBattleMenuOption=BATTLE_MENU_OPTIONS.RUN;
-            else if(direction === DIRECTION.LEFT)
-                this.selectedBattleMenuOption= BATTLE_MENU_OPTIONS.SWITCH;
-        }
-        this.updateCursorPosition();
-    }
+    
+    
 
         // Update cursor position
     }
@@ -612,5 +636,10 @@ export class BattleMenu {
     return;
     }
     
+    updateOpponentPokemon(newPokemon: BattlePokemon) {
+        // Update the player's Pokémon reference
+        this.activeOpponentPokemon = newPokemon;       
+    return;
+    }
 
 }

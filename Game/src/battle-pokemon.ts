@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import Phaser, { AUTO } from "phaser";
 import { HealthBar } from "./health-bar";
 import {Pokemon , BattlePokemonConfig , Coordinate ,Attack} from "./typedef"
 import { DATA_ASSET_KEYS } from "./asset_keys";
@@ -23,6 +23,8 @@ export class BattlePokemon {
     private _experience: number;
     private _experienceToNextLevel: number;
     private _pokemonLevelText!: Phaser.GameObjects.Text;
+    protected evolveTo: string;
+    protected evolutionLevel: number | null;
 
 
     constructor(config: BattlePokemonConfig, position: Coordinate ) {
@@ -35,6 +37,8 @@ export class BattlePokemon {
         this._level = config._pokemonDetails.currentLevel || 1;
         this._experience = 0; // Initialize experience to 0
         this._experienceToNextLevel = this.calculateExperienceToNextLevel(this._level);
+        this.evolveTo = this._pokemonDetails.evolvesTo;
+        this.evolutionLevel = this._pokemonDetails.evolutionLevel;
 
     
 

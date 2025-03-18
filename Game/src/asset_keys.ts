@@ -1,25 +1,65 @@
 export const POKEMON = Object.freeze({
     BULBASAUR: 'bulbasaur' as string,
+    IVYSAUR: 'ivysaur' as string,
+    VENUSAUR: 'venusaur' as string,
+
     CHARMANDER: 'charmander' as string,
+    CHARMELEON: 'charmeleon' as string,
+    CHARIZARD: 'charizard' as string,
+
     CHIKORITA: 'chikorita' as string,
+    BAYLEEF: 'bayleef' as string,
+    MEGANIUM: 'meganium' as string,
+
     CUBONE: 'cubone' as string,
+    MAROWAK: 'marowak' as string,
+
     ELECTRIKE: 'electrike' as string,
+    MANECTRIC: 'manectric' as string,
+
     GEODUDE: 'geodude' as string,
+    GRAVELER: 'graveler' as string,
+    GOLEM: 'golem' as string,
+
     GROWLITHE: 'growlithe' as string,
-    // MAGIKARP: 'magikarp' as string,
-    // MAGMAR: 'magmar' as string,
+    ARCANINE: 'arcanine' as string,
+
     MAGNEMITE: 'magnemite' as string,
+    MAGNETON: 'magneton' as string,
+    MAGNEZONE: 'magnezone' as string,
+
     MEOWTH: 'meowth' as string,
+    PERSIAN: 'persian' as string,
+
     ODDISH: 'oddish' as string,
-    PIDGEY: "pidgey" as string,
+    GLOOM: 'gloom' as string,
+    VILEPLUME: 'vileplume' as string,
+    BELLOSSOM: 'bellossom' as string,
+
+    PIDGEY: 'pidgey' as string,
+    PIDGEOTTO: 'pidgeotto' as string,
+    PIDGEOT: 'pidgeot' as string,
+
     PIKACHU: 'pikachu' as string,
+    RAICHU: 'raichu' as string,
+
     PSYDUCK: 'psyduck' as string,
+    GOLDUCK: 'golduck' as string,
+
     RATTATA: 'rattata' as string,
+    RATICATE: 'raticate' as string,
+
     SANDSHREW: 'sandshrew' as string,
+    SANDSLASH: 'sandslash' as string,
+
     SQUIRTLE: 'squirtle' as string,
-    // TROPIUS: 'tropius' as string,
-    VULPIX: 'vulpix' as string
+    WARTORTLE: 'wartortle' as string,
+    BLASTOISE: 'blastoise' as string,
+
+    VULPIX: 'vulpix' as string,
+    NINETALES: 'ninetales' as string
 });
+
 
 
 
@@ -54,6 +94,6 @@ export const WORLD_ASSET_KEYS = Object.freeze({
 })
 
 export const CHARACTER_ASSET_KEYS = Object.freeze({
-    PLAYER : 'PLAYER'
-
+    PLAYER : 'PLAYER',
+    NPC: 'NPC'
 })
