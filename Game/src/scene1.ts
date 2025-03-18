@@ -32,7 +32,7 @@ export default class scene1 extends Phaser.Scene
         
         //loading character assets
         this.load.atlas(CHARACTER_ASSET_KEYS.PLAYER,"src/assets/player/male_sprite.png", "src/assets/player/male_sprite.json");
-    
+        this.load.atlas(CHARACTER_ASSET_KEYS.NPC,"src/assets/player/npc.png", "src/assets/player/npc.json");
     }
     create() {
         this.add.image(480, 270, "startscreen"); // Add the image

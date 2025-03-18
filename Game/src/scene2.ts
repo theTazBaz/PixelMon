@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import {POKEMON,BATTLE_ASSET_KEYS , HEALTH_BAR_ASSETS, CURSORS, DATA_ASSET_KEYS} from "./asset_keys"
+import {POKEMON,BATTLE_ASSET_KEYS , HEALTH_BAR_ASSETS, CURSORS, DATA_ASSET_KEYS, CHARACTER_ASSET_KEYS} from "./asset_keys"
 import { BattleMenu } from "./battle-menu";
 import { DIRECTION } from "./direction";
 import { StateMachine } from "./battle_state";
@@ -51,6 +51,9 @@ export default class scene2 extends Phaser.Scene {
     private randomIndex !:number; 
     private OPPONENT!:string ;
     private PLAYER = PLAYER_POKEMON_TEAM[0];
+    private flag:boolean = false;
+    private i:number=0;
+
 
 
     constructor() {
@@ -68,13 +71,13 @@ export default class scene2 extends Phaser.Scene {
 
     preload() {
         for (const pokemon of Object.values(POKEMON_DATA)) {
-            this.load.atlas(`${pokemon.name}_front`, `src/assets/pokemon/${pokemon.name}_front.png`,`src/assets/pokemon_json/${pokemon.name}_front.json`);
+            this.load.atlas(`${pokemon.name}`, `src/assets/pokemon/${pokemon.name}_front.png`,`src/assets/pokemon_json/${pokemon.name}_front.json`);
             this.load.atlas(`${pokemon.name}_back`, `src/assets/pokemon/${pokemon.name}_back.png`,`src/assets/pokemon_json/${pokemon.name}_back.json`);
 
         }
         
         this.load.image("battleScene", "src/assets/images/battle_scene_bg.jpg");
-        this.load.atlas(this.OPPONENT, `src/assets/pokemon/${this.OPPONENT}_front.png`,`src/assets/pokemon_json/${this.OPPONENT}_front.json`);
+        this.load.atlas(this.OPPONENT, `src/assets/pokemon/${String(this.OPPONENT).toLowerCase()}_front.png`,`src/assets/pokemon_json/${String(this.OPPONENT).toLowerCase()}_front.json`);
         this.load.atlas(this.PLAYER.name, "src/assets/pokemon/pikachu_back.png", "src/assets/pokemon_json/pikachu_back.json");
         this.load.image("healthbar_background", "src/assets/images/hp_bg.png");
         this.load.image(HEALTH_BAR_ASSETS.LEFT_CAP, "src/assets/images/healthbar_left.png");
@@ -88,10 +91,12 @@ export default class scene2 extends Phaser.Scene {
 
         //loading json data
         this.load.json(DATA_ASSET_KEYS.ATTACKS , "src/assets/data/attacks.json");
-
+        //this.load.atlas(POKEMON.SQUIRTLE, `src/assets/pokemon/squirtle_front.png`,`src/assets/pokemon_json/squirtle_front.json`);
     }   
 
-    create(data: { player?: any }) {
+    create(data: { player?: any, opponentTeam?: Pokemon[] }) {
+       
+
         this.mainPlayer=data.player;
         this.team = data.player.getPokemonTeam();
         const firstAlivePokemon = this.team.find(pokemon => pokemon.currentHp > 0);
@@ -132,32 +137,45 @@ export default class scene2 extends Phaser.Scene {
 
         this.activePlayerPokemon.hidePokemon();
 
-        this.opponentData = POKEMON_DATA[this.OPPONENT as keyof typeof POKEMON_DATA];
-        this.opponentTeam = [];
-        this.opponentTeam.push(this.opponentData);
-
-        this.activeOpponentPokemon = new enemyPokemon({
-            scene: this,
-            _pokemonDetails: {
-                PokemonId:this.opponentData.PokemonId,
-                name: this.OPPONENT,
-                assetKey: this.OPPONENT,
-                assetFrame:this.opponentData.assetFrame,
-                currentHp: this.opponentData.maxHp,
-                maxHp: this.opponentData.maxHp,
-                attackIds: this.opponentData.attackIds,
-                baseAttack: this.opponentData.baseAttack,
-                type: this.opponentData.type,
-                currentLevel:this.opponentData.currentLevel,
-                experience:this.opponentData.experience,
-                catchRate:this.opponentData.catchRate
-            }
-        }); 
+        if (data.opponentTeam) {
+            this.flag=true;
+            this.i++;
+            this.opponentTeam = data.opponentTeam;
+            this.opponentData = POKEMON_DATA[this.OPPONENT as keyof typeof POKEMON_DATA];
+            this.activeOpponentPokemon = new enemyPokemon({
+                scene: this,
+                _pokemonDetails: this.opponentTeam[0], // Use the first Pokémon in the opponent team
+            });
+        } else {
+            this.opponentData = POKEMON_DATA[this.OPPONENT as keyof typeof POKEMON_DATA];
+            this.opponentTeam = [];
+            console.log(this.opponentData);
+            this.opponentTeam.push(this.opponentData);
+            this.activeOpponentPokemon = new enemyPokemon({
+                scene: this,
+                _pokemonDetails: {
+                    PokemonId: this.opponentData.PokemonId,
+                    name: this.OPPONENT,
+                    assetKey: this.OPPONENT,
+                    assetFrame: this.opponentData.assetFrame,
+                    currentHp: this.opponentData.maxHp,
+                    maxHp: this.opponentData.maxHp,
+                    attackIds: this.opponentData.attackIds,
+                    baseAttack: this.opponentData.baseAttack,
+                    type: this.opponentData.type,
+                    currentLevel: this.opponentData.currentLevel,
+                    experience: this.opponentData.experience,
+                    catchRate: this.opponentData.catchRate
+                }
+            });
+        }
 
         //battle Machine starts here 
         this.createBattleStateMachine();
         this.battlemenu = new BattleMenu(this, this.activePlayerPokemon, this.activeOpponentPokemon);
         this.controls=new Controls(this);
+        if(data.opponentTeam)
+            this.battlemenu.hideCatch();
 
 
 
@@ -238,20 +256,30 @@ export default class scene2 extends Phaser.Scene {
         }); 
 
         // adding pre battle stuff
-
         this.battleStateMachine.addState({
             name : BATTLE_STATES.PRE_BATTLE_INFO ,
             onEnter: ()=> {
                 //wait for enemy monster to this.battleIntroText and notify player 
 
                 // this.opponent pokemon this.battleIntroTexts 
-            
-                this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput([`wild ${this.activeOpponentPokemon.name} appeared !`],
+                if(this.flag)
+                {
+                    this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput([`Trainer chose ${this.activeOpponentPokemon.name}!`],
+                        ()=>{
+                            this.battleStateMachine.setState(BATTLE_STATES.BRING_OUT_PLAYER);
+                            //wait for text animation to complete 
+                        }
+                    )
+                }
+                else
+                {
+                    this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput([`wild ${this.activeOpponentPokemon.name} appeared !`],
                     ()=>{
                         this.battleStateMachine.setState(BATTLE_STATES.BRING_OUT_PLAYER);
                         //wait for text animation to complete 
                     }
-                )               
+                )   
+                }            
             }
         })
         
@@ -491,10 +519,23 @@ export default class scene2 extends Phaser.Scene {
 
     private enemyAttack(onComplete?: () => void) {
         if (this.activeOpponentPokemon.isFainted) {
+            if(this.i>=this.opponentTeam.length){{
             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
             if (onComplete) onComplete();
             return;
-        }
+        }}
+        else
+        {
+            
+            this.activeOpponentPokemon.hidePokemon();
+            this.activeOpponentPokemon= new enemyPokemon({
+                scene: this,
+                _pokemonDetails: this.opponentTeam[this.i]
+            })
+            this.battlemenu.updateOpponentPokemon(this.activeOpponentPokemon);
+            this.i++;
+            this.battleStateMachine.setState(BATTLE_STATES.INTRO);
+        }}
         if (this.battlemenu.isAttemptingToSwitchPokemon) {
             console.log("Skipping enemy attack due to Pokémon switch.");
             if (onComplete) onComplete();
@@ -606,7 +647,7 @@ private postBattleCheck() {
             );
         } else {
         this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(
-            [`Wild ${this.activeOpponentPokemon.name} Fainted `, `${this.activePlayerPokemon.name} gained Experience`],
+            [` ${this.activeOpponentPokemon.name} Fainted `, `${this.activePlayerPokemon.name} gained Experience`],
             () => {
                 this.battleStateMachine.setState(BATTLE_STATES.FINISHED);
             }

@@ -33,3 +33,9 @@ export interface Attack {
    type: string;
    damage: number;
 }
+
+export interface Npc {
+   position: Coordinate;
+   team: Pokemon[];
+ }
+ 
