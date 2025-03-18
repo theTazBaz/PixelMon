@@ -2,7 +2,6 @@ import { Direction, DIRECTION } from "../direction";
 import { getTargetPostionFromGameObjectPositionAndDirection } from "../grid-utils";
 import { Coordinate } from "../typedef";
 
-const TILE_SIZE=64;
 
 export interface CharacterConfig {
     scene: Phaser.Scene;

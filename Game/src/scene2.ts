@@ -1,18 +1,18 @@
 import Phaser from "phaser";
 import {POKEMON,BATTLE_ASSET_KEYS , HEALTH_BAR_ASSETS, CURSORS, DATA_ASSET_KEYS} from "./asset_keys"
 import { BattleMenu } from "./battle-menu";
-import { Direction, DIRECTION } from "./direction";
+import { DIRECTION } from "./direction";
 import { StateMachine } from "./battle_state";
 import { Background } from "./battle-background";
 import { BattlePokemon } from "./battle-pokemon";
 import { enemyPokemon } from "./enemy-pokemon";
 import { playerPokemon } from "./player-pokemon";
 import { PLAYER_POKEMON_TEAM } from "./player-pokemon-list";
-import { Pokemon } from "./typedef";
+import { Attack, Pokemon } from "./typedef";
 import { POKEMON_DATA } from "./pokemon-data";
 import { Controls } from "./controls";
 import { Player } from "./characters/player";
-import { DATA_MANAGER_KEYS, dataManager } from "./data_manager";
+import { dataManager } from "./data_manager";
 
 
 
@@ -43,29 +43,27 @@ export default class scene2 extends Phaser.Scene {
     private mainPlayer!:Player;
     private opponentData!:Pokemon;
     private callResolved: number = 0;
-    private OpponentMove: any;
+    private OpponentMove!: Attack;
     private opponentTeam!: Pokemon[];
-    private isOpponentTurn:boolean =false;
-    private selectedAttackIndex!:number;
     private playerDamageDealt!:number[];
     private OpponentDamageDealt!:number[];
-    keys:any ;
-    randomIndex !:number; 
-    OPPONENT:any ;
-    PLAYER = PLAYER_POKEMON_TEAM[0];
+    private keys:any ;
+    private randomIndex !:number; 
+    private OPPONENT!:string ;
+    private PLAYER = PLAYER_POKEMON_TEAM[0];
 
 
     constructor() {
         super("scene2");
-      
     }
+
     init(){
         this.activePlayerAttackIndex=-1;
         this.switchingActivePokemon = false;
         this.keys =  Object.keys(POKEMON) as Array<keyof typeof POKEMON>;
         this.randomIndex = Math.floor(Math.random() * this.keys.length);
         this.OPPONENT = this.keys[this.randomIndex];
-        // this.OPPONENT = POKEMON_DATA.PIKACHU        
+    
     }
 
     preload() {
@@ -86,7 +84,6 @@ export default class scene2 extends Phaser.Scene {
         this.load.image("leftshadow", "src/assets/images/barHorizontal_shadow_left.png");
         this.load.image("midshadow", "src/assets/images/barHorizontal_shadow_mid.png");
         this.load.image("rightshadow", "src/assets/images/barHorizontal_shadow_right.png");
-
         this.load.image(BATTLE_ASSET_KEYS.POKEBALL, "src/assets/images/pokeBall.png");
 
         //loading json data
@@ -96,16 +93,11 @@ export default class scene2 extends Phaser.Scene {
 
     create(data: { player?: any }) {
         this.mainPlayer=data.player;
-        // console.log(data.player);
         this.team = data.player.getPokemonTeam();
-        // console.log(this.team);
-
-        // Find the first Pokémon with HP > 0
         const firstAlivePokemon = this.team.find(pokemon => pokemon.currentHp > 0);
-        // console.log("firstAlivePokemon", firstAlivePokemon);
 
         if (firstAlivePokemon) {
-            this.PLAYER = firstAlivePokemon; // Assign the first alive Pokémon
+            this.PLAYER = firstAlivePokemon;
         } else {
             this.PLAYER= this.team[0]
         }
@@ -114,15 +106,12 @@ export default class scene2 extends Phaser.Scene {
         this.playerDamageDealt=[0,0,0,0,0,0];
         this.OpponentDamageDealt=[0,0,0,0,0,0];
 
-        // console.log(this.PLAYER.currentHp);
-
         //battle background 
         const battlebg = new Background(this);
         battlebg.showBackground();
         
 
         // Loading pokemons 
-        // console.log(this.PLAYER)
         this.activePlayerPokemon = new playerPokemon({
             scene: this,
             _pokemonDetails: {
@@ -145,8 +134,8 @@ export default class scene2 extends Phaser.Scene {
 
         this.opponentData = POKEMON_DATA[this.OPPONENT as keyof typeof POKEMON_DATA];
         this.opponentTeam = [];
-        // console.log(this.opponentData);
         this.opponentTeam.push(this.opponentData);
+
         this.activeOpponentPokemon = new enemyPokemon({
             scene: this,
             _pokemonDetails: {
@@ -164,6 +153,7 @@ export default class scene2 extends Phaser.Scene {
                 catchRate:this.opponentData.catchRate
             }
         }); 
+
         //battle Machine starts here 
         this.createBattleStateMachine();
         this.battlemenu = new BattleMenu(this, this.activePlayerPokemon, this.activeOpponentPokemon);
@@ -182,9 +172,7 @@ export default class scene2 extends Phaser.Scene {
             this.battleStateMachine.currentStateName===BATTLE_STATES.POST_BATTLE_CHECK||
             this.battleStateMachine.currentStateName===BATTLE_STATES.FLEE_ATTEMPT||
             this.battleStateMachine.currentStateName===BATTLE_STATES.SWITCH_POKEMON||
-            this.battleStateMachine.currentStateName===BATTLE_STATES.CATCH_POKEMON
-
-        )){
+            this.battleStateMachine.currentStateName===BATTLE_STATES.CATCH_POKEMON )){
             this.battlemenu.playerInput('OK');
             return ;
         }
@@ -205,7 +193,6 @@ export default class scene2 extends Phaser.Scene {
             }
             if(this.battlemenu.isAttemptingTocatch){
                 this.battleStateMachine.setState(BATTLE_STATES.CATCH_POKEMON);
-
             }
 
             if (this.battlemenu.selectedAttack === undefined) {
@@ -215,7 +202,6 @@ export default class scene2 extends Phaser.Scene {
 
             if(!this.activePlayerPokemon.attacks[this.activePlayerAttackIndex]){
                 return;
-
             }
             
 
@@ -276,7 +262,7 @@ export default class scene2 extends Phaser.Scene {
 
                 //wait for player monster to this.battleIntroText and notify thhe player
                 this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput([`Go ${this.activePlayerPokemon.name }!`],()=>{
-                    this.time.delayedCall(500,()=>{
+                    this.time.delayedCall(5,()=>{
                         if(this.switchingActivePokemon){
                             this.battleStateMachine.setState(BATTLE_STATES.ENEMY_INPUT);
                             return;
@@ -365,13 +351,13 @@ export default class scene2 extends Phaser.Scene {
                     })
                     return;
                 }
-                // console.log("in battle scene ", this.team);
+                console.log("in battle scene ", this.team);
                 this.scene.launch("scene3", {battle:this, player: this.mainPlayer, activepokemon : this.PLAYER });
                 this.events.once("pokemonSwitched", (newPokemon:Pokemon)=>{
                     this.switchToPokemon(newPokemon);
                 })
                 this.events.once("switchCanceled", () => {
-                    this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(["No Pokemon Selected"], () => {
+                    this.battlemenu.updateInfoPaneMsgsWaitForPlayerInput(["Switch Pokemon Canceled"], () => {
                         this.battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT);
                     });
                 });
@@ -449,7 +435,6 @@ export default class scene2 extends Phaser.Scene {
     
     private playerAttack() {
         const selectedAttack = this.activePlayerPokemon.attacks[this.activePlayerAttackIndex];
-        // console.log(selectedAttack);
     
         this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
             [`${this.activePlayerPokemon.name} used ${selectedAttack.name}`],
@@ -475,9 +460,7 @@ export default class scene2 extends Phaser.Scene {
                     this.OpponentDamageDealt[i]= currentOpponentHp-this.activeOpponentPokemon.currentHealth
                     console.log("opponent Pokemon",this.activeOpponentPokemon.name , i , currentOpponentHp-this.activeOpponentPokemon.currentHealth )
                     const effectiveness= result[0];
-                    const playerTeam = dataManager.getPlayerTeam();
-                    const index = playerTeam.findIndex(p => p.name === this.activePlayerPokemon.name);
-                
+            
                     
     
                     // Prepare effectiveness message
@@ -530,12 +513,11 @@ export default class scene2 extends Phaser.Scene {
                 console.log(this.OpponentMove);
             })
             .catch((err)=> {
-        
-                this.OpponentMove= this.activeOpponentPokemon.attacks[1];
+                console.log(err);
+                this.OpponentMove= this.randomMove();
             })
             .finally(()=> {
                 this.callResolved = 0;
-                // this.isOpponentTurn = false;
                 const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
                 const attackType = attackData.find((attack: any) => attack.id === this.OpponentMove.id)?.type || "NORMAL";
                 const currentHp=this.activePlayerPokemon.currentHealth;
@@ -563,6 +545,13 @@ export default class scene2 extends Phaser.Scene {
                             console.log("player Pokemon ",this.activePlayerPokemon.name , i , currentHp-this.activePlayerPokemon.currentHealth )
                             const effectiveness= result[0];
                             this.opponentData.currentHp=this.activeOpponentPokemon.currentHealth;
+                            const playerTeam = dataManager.getPlayerTeam();
+                    const index = playerTeam.findIndex(p => p.name === this.activePlayerPokemon.name);
+                    
+                    if (index !== -1) {
+                        dataManager.updatePokemonHP(index, this.activePlayerPokemon.currentHealth);
+                    }
+                
                             
                             
         
@@ -658,8 +647,6 @@ private postBattleCheck() {
 
     private transitionNextScene(){
         this.cameras.main.fadeOut(2600,0 ,0 ,0) ;
-        this.team.forEach(pokemon => {
-        });
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{
             this.scene.start("scene4");
         })
@@ -676,7 +663,7 @@ private postBattleCheck() {
     }
 
 
-    private randomMove(team: Pokemon[], opponentTeam: Pokemon[]) {
+    private randomMove() {
         const randomIndex = Math.floor(Math.random() * this.activeOpponentPokemon.attacks.length);
         return this.activeOpponentPokemon.attacks[randomIndex];
     }

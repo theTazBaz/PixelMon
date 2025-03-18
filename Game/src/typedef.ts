@@ -30,4 +30,6 @@ export interface Attack {
    id: number;
    name : string;
    animationName: string;
+   type: string;
+   damage: number;
 }

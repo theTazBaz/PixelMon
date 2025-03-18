@@ -67,17 +67,14 @@ export default class scene3 extends Phaser.Scene{
         if (data?.player) {
             this.player = data.player; // Store reference to player
             this.pokemonTeam = this.player.getPokemonTeam();
-            // console.log(this.pokemonTeam) // Get Pokémon team
+            console.log("in switch scene ",this.pokemonTeam) // Get Pokémon team
         }
 
         this.battleScene= data.battle;
         this.cameras.main.setBackgroundColor('#000000'); 
 
 
-        // const buttonContainer = this.add.container(810, 490,[]);
-        // this.CancelButton= this.add.image(0,0,"button",0).setOrigin(0).setScale(3, 1).setAlpha(1);
-        // const cancelText = this.add.text(70.5,23.5 , 'Cancel', Style).setOrigin(0.5)
-        // buttonContainer.add([this.CancelButton, cancelText]);
+        
 
         const infoContainer = this.add.container(4, this.scale.height-85, []);
         const infoDisplay = this.add.rectangle(0,0,950,80,0xede4f3,1).setOrigin(0).setStrokeStyle(8, 0x2a429e);

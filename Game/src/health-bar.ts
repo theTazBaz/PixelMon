@@ -109,6 +109,17 @@ export class HealthBar  {
     
         // Adjust the right cap's position
         this.rightCap.x = this.middle.x + this.middle.displayWidth;
+        if (width <= 5) {  
+            this.rightCap.visible = false; // Hide right cap when bar is nearly empty
+        } else {
+            this.rightCap.visible = true;
+        }
+    
+        if (width <= 0) {  
+            this.leftCap.visible = false; // Hide left cap when HP is zero
+        } else {
+            this.leftCap.visible = true;
+        }
     }
     
     setMeterPercentageAnimated(
