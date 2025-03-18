@@ -1,23 +1,15 @@
 from flask import Flask, request, jsonify
 import random
-import time
 import json
+import time
 import numpy as np
 from flask_cors import CORS
 
 app = Flask(__name__)
-
-# Allow CORS for all domains
-CORS(app, resources={r"/*": {"origins": "*"}})  # <=== FIXED
-
-MOVES = [
-    {"id": 17, "name": "Rock Slide", "animationName": "ROCK_SLIDE", "type": "ROCK"},
-    {"id": 18, "name": "Thunderbolt", "animationName": "THUNDERBOLT", "type": "ELECTRIC"},
-    {"id": 19, "name": "Flamethrower", "animationName": "FLAMETHROWER", "type": "FIRE"},
-]
+CORS(app)  # Enable CORS for all routes
 
 # Load the trained Q-table
-q_table = np.load("q_table_agent.npy")
+q_table = np.load("q_table.npy")
 
 def discretize_state(state):
     """
@@ -137,95 +129,41 @@ def translateAction(action, team):
                 "moveName": active_pokemon["moves"][0].get("name", "Move 1")
             }
 
-def format_team_data(team, damage_dealt, move_data, active_pokemon_index=0):
-    formatted_team = {
-        "activePokemonIndex": active_pokemon_index,
-        "pokemon": [],
-        "lastDamageReceived": damage_dealt[0] if damage_dealt else 0  # First value represents damage taken
-    }
-
-    # Convert move_data into a dictionary for quick lookup
-    move_dict = {move["id"]: move for move in move_data}
-
-    for i, pkmn in enumerate(team):
-        # Extract moves for this Pokémon
-        moves = []
-        for move_id in pkmn.get("attackIds", []):
-            if move_id in move_dict:
-                moves.append({
-                    "name": move_dict[move_id]["name"],
-                    "damage": 10,
-                    "type": move_dict[move_id]["type"]
-                })
-
-        formatted_team["pokemon"].append({
-            "name": pkmn["name"].capitalize(),  # Capitalized name
-            "hp": pkmn["currentHp"],  # Actual current HP
-            "maxHp": pkmn["maxHp"],  # Actual max HP
-            "type": pkmn["type"].capitalize(),  # Capitalized type
-            "moves": moves,  # Assigned moves
-            "lastDamageDealt": damage_dealt[i] if i < len(damage_dealt) else 0
-        })
-
-    return formatted_team
-
-
-
-
-
-
-@app.route('/fetchOpponentMove', methods=['POST'])
-def fetchOppMove():
+@app.route('/fetchOpponentMove', methods=['GET'])
+def fetchOpponentMove():
     try:
-        data = request.get_json()  # Extract JSON from request body
-        if not data:
-            return jsonify({"error": "Invalid JSON data"}), 400
-
-        team1 = data.get("team1", [])
-        team2 = data.get("team2", [])
-        move_data = data.get("MoveData", [])
-        player_damage = data.get("PlayerDamage", [])
-        opponent_damage = data.get("OpponentDamage", [])
-        formatted_team1 = format_team_data(team1, player_damage, move_data)
-        formatted_team2 = format_team_data(team2, opponent_damage,move_data)
-        print(json.dumps(formatted_team1, indent=4))
-        print(json.dumps(formatted_team2, indent=4)) 
-        print()
-        # print("opponent",formatted_team2)
-        print()
-
-    
-
-        # move = random.choice(MOVES)
-
-        # return jsonify({"move": move})
-        # Convert team data to state
-        state = getState(formatted_team1, formatted_team2)
+        # Parse team data from the request
+        team1_str = request.args.get('team1')
+        team2_str = request.args.get('team2')
         
-        print("STATE IS HERE: ")
-        print(state)
-
+        if not team1_str or not team2_str:
+            return jsonify({"error": "Missing team data"}), 400
+        
+        team1 = json.loads(team1_str)  # Player's team
+        team2 = json.loads(team2_str)  # AI agent's team
+        
+        # Convert team data to state
+        state = getState(team1, team2)
+        
         # Get action from Q-table
         state_idx = discretize_state(state)
         action = int(np.argmax(q_table[state_idx]))
         
-
         # Translate action to a response for the frontend
-        response_data = translateAction(action, formatted_team2)
+        response_data = translateAction(action, team2)
         
         # Add the raw action for debugging
-        response_data["rcawAction"] = int(action)
+        response_data["rawAction"] = int(action)
         
-        print("SERVER SAYS THIS")
-        print(action)
-        print("RESPOINSE UWUW")
-        print(response_data)
-
         return jsonify(response_data)
 
     except Exception as e:
-        print("Server Error:", str(e))
+        print(f"Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "ok"})
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)

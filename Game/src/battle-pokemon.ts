@@ -65,6 +65,9 @@ export class BattlePokemon {
     });
     
     }
+    get pokemonID():number{
+        return this._pokemonDetails.PokemonId;
+    }
 
     get isFainted():boolean {
         return this.currentHealth<=0;
@@ -96,7 +99,7 @@ export class BattlePokemon {
         if (this.currentHealth < 0) {
             this.currentHealth = 0;
         }
-        console.log("in battle pokemon ",this.currentHealth)
+        
         this._healthBar.setMeterPercentageAnimated(this.currentHealth / this.maxHealth, {
             callback: callback
         });
@@ -182,7 +185,7 @@ createHealthBarComponents() {
             fontSize: '15px',
         }
     ).setOrigin(1, 0);
-    console.log("in battle pokemon HP ", this.currentHealth);
+    // console.log("in battle pokemon HP ", this.currentHealth);
     
     
 

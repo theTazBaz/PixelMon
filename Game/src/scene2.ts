@@ -47,6 +47,8 @@ export default class scene2 extends Phaser.Scene {
     private opponentTeam!: Pokemon[];
     private isOpponentTurn:boolean =false;
     private selectedAttackIndex!:number;
+    private playerDamageDealt!:number[];
+    private OpponentDamageDealt!:number[];
     keys:any ;
     randomIndex !:number; 
     OPPONENT:any ;
@@ -55,6 +57,7 @@ export default class scene2 extends Phaser.Scene {
 
     constructor() {
         super("scene2");
+      
     }
     init(){
         this.activePlayerAttackIndex=-1;
@@ -62,7 +65,7 @@ export default class scene2 extends Phaser.Scene {
         this.keys =  Object.keys(POKEMON) as Array<keyof typeof POKEMON>;
         this.randomIndex = Math.floor(Math.random() * this.keys.length);
         this.OPPONENT = this.keys[this.randomIndex];
-        
+        // this.OPPONENT = POKEMON_DATA.PIKACHU        
     }
 
     preload() {
@@ -92,16 +95,14 @@ export default class scene2 extends Phaser.Scene {
     }   
 
     create(data: { player?: any }) {
-       
-
         this.mainPlayer=data.player;
-        console.log(data.player);
+        // console.log(data.player);
         this.team = data.player.getPokemonTeam();
-        console.log(this.team);
+        // console.log(this.team);
 
         // Find the first Pokémon with HP > 0
         const firstAlivePokemon = this.team.find(pokemon => pokemon.currentHp > 0);
-        console.log("firstAlivePokemon", firstAlivePokemon);
+        // console.log("firstAlivePokemon", firstAlivePokemon);
 
         if (firstAlivePokemon) {
             this.PLAYER = firstAlivePokemon; // Assign the first alive Pokémon
@@ -109,7 +110,11 @@ export default class scene2 extends Phaser.Scene {
             this.PLAYER= this.team[0]
         }
 
-        console.log(this.PLAYER.currentHp);
+
+        this.playerDamageDealt=[0,0,0,0,0,0];
+        this.OpponentDamageDealt=[0,0,0,0,0,0];
+
+        // console.log(this.PLAYER.currentHp);
 
         //battle background 
         const battlebg = new Background(this);
@@ -117,7 +122,7 @@ export default class scene2 extends Phaser.Scene {
         
 
         // Loading pokemons 
-        console.log(this.PLAYER)
+        // console.log(this.PLAYER)
         this.activePlayerPokemon = new playerPokemon({
             scene: this,
             _pokemonDetails: {
@@ -140,7 +145,7 @@ export default class scene2 extends Phaser.Scene {
 
         this.opponentData = POKEMON_DATA[this.OPPONENT as keyof typeof POKEMON_DATA];
         this.opponentTeam = [];
-        console.log(this.opponentData);
+        // console.log(this.opponentData);
         this.opponentTeam.push(this.opponentData);
         this.activeOpponentPokemon = new enemyPokemon({
             scene: this,
@@ -299,48 +304,19 @@ export default class scene2 extends Phaser.Scene {
                         this.battleStateMachine.setState(BATTLE_STATES.BATTLE);
         
                         
-                    }  
-                    // onEnter: async () => {
-                    //     this.isOpponentTurn = true;
-                    //     if (this.callResolved === 0) {
-                    //         this.callResolved = 1;
-                
-                    //         try {
-                    //             const res = await this.fetchOpponentMove(this.team, this.opponentTeam);
-                    //             this.OpponentMove = res?.move || this.randomMove(this.team, this.opponentTeam);
-                    //         } catch (err) {
-                    //             console.error("API call failed, choosing random move.");
-                    //             this.OpponentMove = this.randomMove(this.team, this.opponentTeam);
-                    //         } finally {
-                    //             this.callResolved = 0;
-                    //             this.isOpponentTurn = false;
-                    //             this.enemyAttack(() => {
-                    //                 this.battleStateMachine.setState(BATTLE_STATES.BATTLE); 
-                    //             });
-                    //         }
-                    //     }
-                    // }
+                    } 
                 });
                 
         this.battleStateMachine.addState({
             name : BATTLE_STATES.BATTLE ,
             onEnter: ()=> {
-                //logic for Battle
-                //general battle flow 
-                // show attack used and pause 
-                // play attack animation 
-                // damage animation
-                // health bar 
-                //then other monster attacks
                 if(this.battlemenu.isAttemptingToSwitchPokemon){
                     this.time.delayedCall(500, ()=>{
                         this.enemyAttack(() =>{
                             this.switchingActivePokemon = false ; 
                             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);  
                         })
-
                     })
-                
                     return;
                 }
                 this.playerAttack();
@@ -389,7 +365,7 @@ export default class scene2 extends Phaser.Scene {
                     })
                     return;
                 }
-                console.log("in battle scene ", this.team);
+                // console.log("in battle scene ", this.team);
                 this.scene.launch("scene3", {battle:this, player: this.mainPlayer, activepokemon : this.PLAYER });
                 this.events.once("pokemonSwitched", (newPokemon:Pokemon)=>{
                     this.switchToPokemon(newPokemon);
@@ -473,7 +449,7 @@ export default class scene2 extends Phaser.Scene {
     
     private playerAttack() {
         const selectedAttack = this.activePlayerPokemon.attacks[this.activePlayerAttackIndex];
-        console.log(selectedAttack);
+        // console.log(selectedAttack);
     
         this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
             [`${this.activePlayerPokemon.name} used ${selectedAttack.name}`],
@@ -484,20 +460,24 @@ export default class scene2 extends Phaser.Scene {
                     const attackType = attackData.find((attack: any) => attack.id === selectedAttack.id)?.type || "NORMAL";
     
                     // Call takeDamage and get the effectiveness result
+                    const currentOpponentHp=this.activeOpponentPokemon.currentHealth
                     const result = this.activeOpponentPokemon.takeDamage(
                         this.activePlayerPokemon.baseAttack,
                         attackType
                     );
+                    let i=0;
+
+                    this.opponentTeam.forEach((pokemon,index)=>{
+                        if(pokemon.PokemonId===this.activeOpponentPokemon.pokemonID){
+                                    i=index;
+                        }
+                        })
+                    this.OpponentDamageDealt[i]= currentOpponentHp-this.activeOpponentPokemon.currentHealth
+                    console.log("opponent Pokemon",this.activeOpponentPokemon.name , i , currentOpponentHp-this.activeOpponentPokemon.currentHealth )
                     const effectiveness= result[0];
-                    const currentHp= result[1];
                     const playerTeam = dataManager.getPlayerTeam();
                     const index = playerTeam.findIndex(p => p.name === this.activePlayerPokemon.name);
-                    
-                    if (index !== -1) {
-                        dataManager.updatePokemonHP(index, currentHp);
-                    }
-                    
-
+                
                     
     
                     // Prepare effectiveness message
@@ -537,17 +517,20 @@ export default class scene2 extends Phaser.Scene {
             if (onComplete) onComplete();
             return;
         }
+        // console.log(this.opponentTeam);
         if(this.callResolved === 0) {
             //call the api to get the mode's move
             this.callResolved = 1;
 
             this.fetchOpponentMove(this.team,this.opponentTeam)
             .then((res)=> {
-                this.OpponentMove = res.move
+
+                this.OpponentMove= this.activeOpponentPokemon.attacks[res.moveIndex];
+                console.log("rad this", res.moveIndex);
+                console.log(this.OpponentMove);
             })
             .catch((err)=> {
-                //in case it fails, choose a random move
-                // this.OpponentMove = this.randomMove(this.team,this.opponentTeam);
+        
                 this.OpponentMove= this.activeOpponentPokemon.attacks[1];
             })
             .finally(()=> {
@@ -555,6 +538,7 @@ export default class scene2 extends Phaser.Scene {
                 // this.isOpponentTurn = false;
                 const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
                 const attackType = attackData.find((attack: any) => attack.id === this.OpponentMove.id)?.type || "NORMAL";
+                const currentHp=this.activePlayerPokemon.currentHealth;
                 this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
                     [`${this.activeOpponentPokemon.name} used ${this.OpponentMove.name}`],
                     () => {
@@ -567,8 +551,20 @@ export default class scene2 extends Phaser.Scene {
                                     this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
                                     if (onComplete) onComplete();
                                 }
-                            );
-                            const effectiveness=result[0];
+                            ); 
+                            let i=0;
+                            
+                            this.team.forEach((pokemon,index)=>{
+                                if(pokemon.PokemonId===this.activePlayerPokemon.pokemonID){
+                                    i=index;
+                                }
+                            })
+                            this.playerDamageDealt[i]= currentHp-this.activePlayerPokemon.currentHealth;
+                            console.log("player Pokemon ",this.activePlayerPokemon.name , i , currentHp-this.activePlayerPokemon.currentHealth )
+                            const effectiveness= result[0];
+                            this.opponentData.currentHp=this.activeOpponentPokemon.currentHealth;
+                            
+                            
         
                             // Prepare effectiveness message
                             let effectivenessMessage = "";
@@ -577,8 +573,6 @@ export default class scene2 extends Phaser.Scene {
                             } else if (effectiveness < 1) {
                                 effectivenessMessage = "It's not very effective...";
                             }
-        
-                            // Show effectiveness message if applicable, then proceed
                             if (effectivenessMessage) {
                                 this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
                                     [effectivenessMessage],
@@ -594,77 +588,10 @@ export default class scene2 extends Phaser.Scene {
                         });
                     }
         );
-            })
-            
-        } 
-        // const enemyAttack = this.activeOpponentPokemon.attacks[1];
-
+        })
+    } 
 }
 
-
-
-// private async enemyAttack(onComplete?: () => void) {
-//     console.log("player attack function is being called");
-//     if (this.activeOpponentPokemon.isFainted) {
-//         this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
-//         if (onComplete) onComplete();
-//         return;
-//     }
-
-//     if (this.battlemenu.isAttemptingToSwitchPokemon) {
-//         console.log("Skipping enemy attack due to Pokémon switch.");
-//         if (onComplete) onComplete();
-//         return;
-//     }
-
-//     if (!this.OpponentMove) {
-//         this.OpponentMove = this.randomMove(this.team, this.opponentTeam);
-//     }
-
-//     const attackData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
-//     const attackDetails = attackData.find((attack: any) => attack.name === this.OpponentMove);
-
-//     if (!attackDetails) {
-//         console.warn(`Attack ${this.OpponentMove} not found in data! Using default.`);
-//         this.OpponentMove = this.activeOpponentPokemon.attacks[0].name;
-//     }
-
-//     const attackType = attackDetails?.type || "NORMAL";
-//     const attackPower = attackDetails?.power || this.activeOpponentPokemon.baseAttack;
-
-//     this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
-//         [`${this.activeOpponentPokemon.name} used ${this.OpponentMove}!`],
-//         () => {
-//             this.time.delayedCall(1200, () => {
-//                 const result = this.activePlayerPokemon.takeDamage(attackPower, attackType, () => {
-//                     this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
-//                     if (onComplete) onComplete();
-//                 });
-
-//                 const effectiveness = result[0];
-//                 let effectivenessMessage = "";
-//                 if (effectiveness > 1) {
-//                     effectivenessMessage = "It's super effective!";
-//                 } else if (effectiveness < 1) {
-//                     effectivenessMessage = "It's not very effective...";
-//                 }
-
-//                 if (effectivenessMessage) {
-//                     this.battlemenu.updateInfoPaneMsgsWithoutPlayerInput(
-//                         [effectivenessMessage],
-//                         () => {
-//                             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
-//                             if (onComplete) onComplete();
-//                         }
-//                     );
-//                 } else {
-//                     this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
-//                     if (onComplete) onComplete();
-//                 }
-//             });
-//         }
-//     );
-// }
     private calculateExperienceGained(opponentPokemon: BattlePokemon): number {
         // Example formula for experience gain
         const experienceGained = Math.floor(opponentPokemon.level * 1000);
@@ -732,7 +659,6 @@ private postBattleCheck() {
     private transitionNextScene(){
         this.cameras.main.fadeOut(2600,0 ,0 ,0) ;
         this.team.forEach(pokemon => {
-            console.log(`${pokemon.name}: ${pokemon.currentHp} HP`);
         });
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{
             this.scene.start("scene4");
@@ -748,40 +674,50 @@ private postBattleCheck() {
     
         return catchProbability;
     }
-  
-    
-    
+
 
     private randomMove(team: Pokemon[], opponentTeam: Pokemon[]) {
-        // if (!this.activeOpponentPokemon || this.activeOpponentPokemon.attacks.length === 0) {
-        //     console.warn("Opponent has no available moves. Defaulting to 'Tackle'.");
-        //     return "Tackle"; // Default move if no moves are available.
-        // }
-
-        // Select a random move from the opponent's available attacks
         const randomIndex = Math.floor(Math.random() * this.activeOpponentPokemon.attacks.length);
         return this.activeOpponentPokemon.attacks[randomIndex];
     }
+    
     async fetchOpponentMove(team1: Pokemon[], team2: Pokemon[]) {
+        const MoveData = this.cache.json.get(DATA_ASSET_KEYS.ATTACKS);
+        
+        console.log("team1", team1, "Type:", typeof team1);
+        console.log("team2", team2, "Type:", typeof team2);
+        console.log("MoveData", MoveData, "Type:", typeof MoveData);
+        console.log("playerDamage", this.playerDamageDealt, "Type:", typeof this.playerDamageDealt);
+        console.log("opponentDamage", this.OpponentDamageDealt, "Type:", typeof this.OpponentDamageDealt);
+    
         try {
-            const url = new URL("http://127.0.0.1:5000/fetchOpponentMove");
-            url.searchParams.append("team1", encodeURIComponent(JSON.stringify(team1)));
-            url.searchParams.append("team2", encodeURIComponent(JSON.stringify(team2)));
-
-            const response = await fetch(url.toString(), { method: "GET" });
-
+            const url = "http://127.0.0.1:5000/fetchOpponentMove";
+    
+            const payload = {
+                team1: team1,
+                team2: team2,
+                MoveData: MoveData,
+                PlayerDamage: this.playerDamageDealt,
+                OpponentDamage: this.OpponentDamageDealt
+            };
+    
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+    
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-
+    
             return await response.json();
         } catch (error) {
             console.error("Error fetching opponent move:", error);
             return null;
         }
     }
-
-    
-
     
 }

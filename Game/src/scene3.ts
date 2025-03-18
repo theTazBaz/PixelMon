@@ -63,11 +63,11 @@ export default class scene3 extends Phaser.Scene{
     }
 
     create(data:any){
-        console.log(data.player);
+        // console.log(data.player);
         if (data?.player) {
             this.player = data.player; // Store reference to player
             this.pokemonTeam = this.player.getPokemonTeam();
-            console.log(this.pokemonTeam) // Get Pokémon team
+            // console.log(this.pokemonTeam) // Get Pokémon team
         }
 
         this.battleScene= data.battle;
@@ -90,7 +90,7 @@ export default class scene3 extends Phaser.Scene{
         this.updateInfoContainerText();
 
         this.pokemonTeam.forEach((pokemon, index)=>{
-            console.log(pokemon);
+            // console.log(pokemon);
             const isEven = index%2 ==0 
             const x = isEven? POKEMON_POSITIONS.EVEN.x :POKEMON_POSITIONS.ODD.x;
             const y =(isEven? POKEMON_POSITIONS.EVEN.y: POKEMON_POSITIONS.ODD.y) + POKEMON_POSITIONS.increment* Math.floor(index/2);
@@ -196,7 +196,7 @@ export default class scene3 extends Phaser.Scene{
                 }
                 
                 this.PokemonSwitchBackground[this.selectedPokemonIndex].setAlpha(1);
-                console.log(this.selectedPokemonIndex)
+                // console.log(this.selectedPokemonIndex)
                 break;
             case DIRECTION.LEFT:
             case DIRECTION.RIGHT:
@@ -237,7 +237,7 @@ export default class scene3 extends Phaser.Scene{
         pokemonSprite.play(`${pokemonDetails.name}_front`);
         
         const healthBar = new HealthBar(this,70,35,240,240);
-        console.log(pokemonDetails.name , pokemonDetails.currentHp,pokemonDetails.maxHp)
+        // console.log(pokemonDetails.name , pokemonDetails.currentHp,pokemonDetails.maxHp)
         
         healthBar.setMeterPercentageAnimated(pokemonDetails.currentHp/pokemonDetails.maxHp,{
             duration:0,
