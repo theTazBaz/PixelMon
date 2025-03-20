@@ -12,8 +12,8 @@ class Npc {
   constructor(scene: Phaser.Scene, position: Coordinate) {
     this.scene = scene;
     this.position = position;
-    this.sprite = scene.add.sprite(position.x, position.y, CHARACTER_ASSET_KEYS.PLAYER); // Use your NPC sprite key
-    this.sprite.setScale(4); // Adjust scale as needed
+    this.sprite = scene.add.sprite(position.x, position.y, CHARACTER_ASSET_KEYS.NPC); // Use your NPC sprite key
+    this.sprite.setScale(3); // Adjust scale as needed
   }
 
   isNearPlayer(playerPosition: Coordinate): boolean {

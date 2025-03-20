@@ -95,7 +95,7 @@ export default class scene2 extends Phaser.Scene {
     }   
 
     create(data: { player?: any, opponentTeam?: Pokemon[] }) {
-       
+    
 
         this.mainPlayer=data.player;
         this.team = data.player.getPokemonTeam();
@@ -138,6 +138,7 @@ export default class scene2 extends Phaser.Scene {
         this.activePlayerPokemon.hidePokemon();
 
         if (data.opponentTeam) {
+            console.log("opponent team trainer part")
             this.flag=true;
             this.i++;
             this.opponentTeam = data.opponentTeam;
@@ -146,7 +147,9 @@ export default class scene2 extends Phaser.Scene {
                 scene: this,
                 _pokemonDetails: this.opponentTeam[0], // Use the first Pokémon in the opponent team
             });
+            // this.activeOpponentPokemon.hidePokemon();
         } else {
+            console.log("wild pokemon part")
             this.opponentData = POKEMON_DATA[this.OPPONENT as keyof typeof POKEMON_DATA];
             this.opponentTeam = [];
             console.log(this.opponentData);
@@ -176,9 +179,6 @@ export default class scene2 extends Phaser.Scene {
         this.controls=new Controls(this);
         if(data.opponentTeam)
             this.battlemenu.hideCatch();
-
-
-
         }
 
     update(){
@@ -518,20 +518,22 @@ export default class scene2 extends Phaser.Scene {
     
 
     private enemyAttack(onComplete?: () => void) {
+        // this.activeOpponentPokemon.hidePokemon();
         if (this.activeOpponentPokemon.isFainted) {
-            if(this.i>=this.opponentTeam.length){{
+            if(this.i>=this.opponentTeam.length){
             this.battleStateMachine.setState(BATTLE_STATES.POST_BATTLE_CHECK);
             if (onComplete) onComplete();
             return;
-        }}
+        }
         else
         {
+            console.log("int enemy attack in the pokemon switch for opponent 1 ", this.activeOpponentPokemon.name);
             
-            this.activeOpponentPokemon.hidePokemon();
             this.activeOpponentPokemon= new enemyPokemon({
                 scene: this,
                 _pokemonDetails: this.opponentTeam[this.i]
             })
+            console.log("int enemy attack in the pokemon switch for opponent 3 ", this.activeOpponentPokemon.name);
             this.battlemenu.updateOpponentPokemon(this.activeOpponentPokemon);
             this.i++;
             this.battleStateMachine.setState(BATTLE_STATES.INTRO);

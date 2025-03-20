@@ -25,15 +25,15 @@ export default class scene4 extends Phaser.Scene {
         this.playerTeam = [];
     }
     preload() {
-        this.load.spritesheet('bulbasaur', 'assets/sprites/bulbasaur.png', {
-            frameWidth: 64,
-            frameHeight: 64
-        });
+        // this.load.spritesheet('bulbasaur', 'assets/sprites/bulbasaur.png', {
+        //     frameWidth: 64,
+        //     frameHeight: 64
+        // });
     
-        this.load.spritesheet('charmander', 'assets/sprites/charmander.png', {
-            frameWidth: 64,
-            frameHeight: 64
-        });
+        // this.load.spritesheet('charmander', 'assets/sprites/charmander.png', {
+        //     frameWidth: 64,
+        //     frameHeight: 64
+        // });
     }
     
     init() {
@@ -130,7 +130,7 @@ export default class scene4 extends Phaser.Scene {
             return;
         }
 
-        this.wildPokemonEncountered = Math.random() < 0.02;
+        this.wildPokemonEncountered = Math.random() < 0.2;
         if (this.wildPokemonEncountered) {
             this.cameras.main.fadeOut(2000);
             this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
@@ -142,7 +142,7 @@ export default class scene4 extends Phaser.Scene {
         }
     }
     private opponentTeam: Pokemon[] = [
-        POKEMON_DATA.VULPIX,
+        POKEMON_DATA.CHARMANDER,
         POKEMON_DATA.BULBASAUR,
         // Add more Pokémon here
       ];
